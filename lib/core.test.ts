@@ -33,7 +33,7 @@ describe("curtailment verification", () => {
   });
 
   it("fails a cut that is too slow or bounces back", () => {
-    const slow = [...flat(0, 60, 100), ...flat(60, 70, 90), ...flat(70, 180, 74)];
+    const slow = [...flat(0, 60, 100), ...flat(60, 72, 90), ...flat(72, 180, 74)]; // 12 min > 10-min window
     expect(verifyCurtailment(slow, { startMin: 60, endMin: 180, targetPct: 0.25 }).compliant).toBe(false);
     const bounce = [...flat(0, 60, 100), ...flat(60, 120, 74), ...flat(120, 180, 95)];
     expect(verifyCurtailment(bounce, { startMin: 60, endMin: 180, targetPct: 0.25 }).compliant).toBe(false);
@@ -65,6 +65,23 @@ describe("simulated campus", () => {
     const later = certificate(ev.id)!;
     expect(later.body.ledgerHead).toBe(cert.body.ledgerHead);
     expect(later.body.logIntact).toBe(false);
+  });
+
+  it("measures a back-to-back event against normal load, and logs it minute by minute", () => {
+    const s = reset();
+    const e1 = startEvent(0.25, 30);
+    s.startedAt -= 35_000;
+    tick();
+    const e2 = startEvent(0.25, 30);
+    s.startedAt -= 35_000;
+    tick();
+    expect(Math.abs(e2.baselineMW - e1.baselineMW)).toBeLessThan(3);
+    const during = s.history.filter((t) => t.min >= e2.startMin && t.min < e2.endMin);
+    const realCut = during.reduce((x, t) => x + (t.uncutMW - t.facilityMW) / t.uncutMW, 0) / during.length;
+    expect(realCut).toBeGreaterThan(0.2);
+    expect(realCut).toBeLessThan(0.3);
+    const logged = s.ledger.filter((l) => l.type === "reading" && l.ts >= during[0].ts && l.ts <= during.at(-1)!.ts);
+    expect(logged.length).toBe(30);
   });
 
   it("rejects inputs that would lock or stretch an event", () => {

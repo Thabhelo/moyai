@@ -33,7 +33,7 @@ export class Campus extends DurableObject<Env> {
       const county = url.searchParams.get("county") ?? "";
       return json({
         now: s.history.at(-1),
-        history: s.history.slice(-180).map((t) => ({ min: t.min, facilityMW: t.facilityMW, baselineMW: t.baselineMW })),
+        history: s.history.slice(-180).map((t) => ({ min: t.min, facilityMW: t.facilityMW, uncutMW: t.uncutMW })),
         events: s.events,
         ledger: s.ledger.slice(-8),
         ledgerLength: s.ledger.length,

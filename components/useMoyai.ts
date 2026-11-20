@@ -6,7 +6,7 @@ import type { LedgerEntry } from "@/lib/ledger";
 export type Report = { id: number; kind: string; note: string; ts: number };
 export type MoyaiState = {
   now: Telemetry;
-  history: { min: number; facilityMW: number; baselineMW: number }[];
+  history: { min: number; facilityMW: number; uncutMW: number }[];
   events: GridEvent[];
   ledger: LedgerEntry[];
   ledgerLength: number;

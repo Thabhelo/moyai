@@ -304,7 +304,7 @@ function Grid({ s }: { s: MoyaiState }) {
   const live = activeEvent(s);
   const [error, setError] = useState("");
   const send = async () => {
-    const r = await post("event", { targetPct: 0.25, durationMin: 30 });
+    const r = await post("event", { targetPct: 0.3, durationMin: 30 });
     setError(r.ok ? "" : "A grid signal is already running.");
   };
   const done = s.events.filter((e) => e.verification).toReversed();
@@ -312,7 +312,7 @@ function Grid({ s }: { s: MoyaiState }) {
     <>
       <div className="grid gap-4 lg:grid-cols-3">
         <Card title="The promise" className="lg:col-span-2">
-          <p className="text-lg">Cut 25% of power within 5 minutes of a grid signal, for up to 40 hours a year.</p>
+          <p className="text-lg">Drop to 70% of normal power within 10 minutes of a grid signal, for up to 40 hours a year.</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Button onClick={send} disabled={!!live}>{live ? "Signal running, load is dropping" : "Send grid peak signal"}</Button>
             <span className="text-sm text-ink3">{error || "1 second here is 1 minute at the campus."}</span>
@@ -329,13 +329,13 @@ function Grid({ s }: { s: MoyaiState }) {
       <Card title="Power draw, last 3 hours">
         <div className="mb-1 flex items-baseline gap-4 text-sm">
           <span><span className="num text-2xl font-medium">{n1(s.now.facilityMW)}</span> MW now</span>
-          <span className="text-ink2">Expected without a signal: <span className="num">{n1(s.now.baselineMW)}</span> MW (dashed)</span>
+          <span className="text-ink2">Expected without a signal: <span className="num">{n1(s.now.uncutMW)}</span> MW (dashed)</span>
         </div>
-        <Lines height={150} label="Power draw against the expected level" series={[{ values: s.history.map((t) => t.baselineMW), dashed: true, muted: true }, { values: s.history.map((t) => t.facilityMW) }]} />
+        <Lines height={150} label="Power draw against the expected level" series={[{ values: s.history.map((t) => t.uncutMW), dashed: true, muted: true }, { values: s.history.map((t) => t.facilityMW) }]} />
         <div className="mt-2 grid grid-cols-3 gap-4 text-sm">
           <div><span className="num">{n1(Math.max(0, s.now.batteryMW))}</span> MW from the battery (<span className="num">{n0(s.now.batterySoc * 100)}</span>% full)</div>
           <div><span className="num">{n1(s.now.computeShedMW)}</span> MW of AI training paused</div>
-          <div><span className="num">{n1(s.now.baselineMW - s.now.facilityMW > 0.5 ? s.now.baselineMW - s.now.facilityMW : 0)}</span> MW relief in total</div>
+          <div><span className="num">{n1(s.now.uncutMW - s.now.facilityMW > 0.5 ? s.now.uncutMW - s.now.facilityMW : 0)}</span> MW relief in total</div>
         </div>
       </Card>
       <Card title="Signal log">

@@ -47,14 +47,14 @@ export const RECS = [
 ] as const;
 
 export const PAST_EVENTS = [
-  { date: "Nov 12", reason: "Evening peak", asked: 22.4, delivered: 22.9, ramp: 4, met: true },
-  { date: "Oct 29", reason: "Line outage", asked: 22.1, delivered: 22.6, ramp: 4, met: true },
-  { date: "Sep 18", reason: "Heat advisory", asked: 22.6, delivered: 23.0, ramp: 3, met: true },
-  { date: "Aug 30", reason: "Heat advisory", asked: 22.5, delivered: 19.8, ramp: 9, met: false },
-  { date: "Aug 14", reason: "Heat advisory", asked: 22.3, delivered: 22.7, ramp: 4, met: true },
-  { date: "Jul 22", reason: "Evening peak", asked: 22.4, delivered: 22.8, ramp: 4, met: true },
-  { date: "Jul 08", reason: "Heat advisory", asked: 22.0, delivered: 22.5, ramp: 5, met: true },
-  { date: "Jun 25", reason: "Evening peak", asked: 22.2, delivered: 22.4, ramp: 4, met: true },
+  { date: "Nov 12", reason: "Evening peak", asked: 26.9, delivered: 27.4, ramp: 4, met: true },
+  { date: "Oct 29", reason: "Line outage", asked: 26.5, delivered: 27.1, ramp: 4, met: true },
+  { date: "Sep 18", reason: "Heat advisory", asked: 27.1, delivered: 27.6, ramp: 3, met: true },
+  { date: "Aug 30", reason: "Heat advisory", asked: 27.0, delivered: 23.8, ramp: 12, met: false },
+  { date: "Aug 14", reason: "Heat advisory", asked: 26.8, delivered: 27.2, ramp: 4, met: true },
+  { date: "Jul 22", reason: "Evening peak", asked: 26.9, delivered: 27.4, ramp: 4, met: true },
+  { date: "Jul 08", reason: "Heat advisory", asked: 26.4, delivered: 27.0, ramp: 5, met: true },
+  { date: "Jun 25", reason: "Evening peak", asked: 26.6, delivered: 26.9, ramp: 4, met: true },
 ];
 
 export const COMMITMENTS: { name: string; detail: string; status: "Met" | "Pending" | "At risk" | "Breached"; evidence: string }[] = [

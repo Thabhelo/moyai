@@ -41,7 +41,7 @@ Census figures in `lib/data.ts` are real (U.S. Census ACS 2020-2024). Every othe
 | Method | Route | Does |
 |---|---|---|
 | GET | `/api/state?county=shelby` | Advances the sim to now; returns the latest reading, last 3 h, events, the ledger tail, the first broken ledger entry, that county's resident reports and applied cooling changes |
-| POST | `/api/event` | Starts a grid signal `{ targetPct: 0.25, durationMin: 30 }` |
+| POST | `/api/event` | Starts a grid signal `{ targetPct: 0.3, durationMin: 30 }` |
 | GET | `/api/certificate/:id` | Signed certificate for a finished event |
 | POST | `/api/report` | Saves a resident report `{ county, kind, note }` |
 | POST | `/api/apply` | Marks a cooling recommendation applied `{ rec }` |
@@ -51,7 +51,7 @@ Census figures in `lib/data.ts` are real (U.S. Census ACS 2020-2024). Every othe
 ## Code
 
 - `lib/sim.ts`: the simulated campus. Battery covers the cut first, then paused AI training covers the rest.
-- `lib/baseline.ts`: baseline and curtailment verification. Passes if load reaches the committed level within the 5-minute dispatch window and stays there. Also estimates the water saved at power plants (Duke grid, 2.26 L/kWh).
+- `lib/baseline.ts`: baseline and curtailment verification. Passes if load reaches the committed level (70% of baseline) within the 10-minute dispatch window and stays there. Also estimates the water saved at power plants (US average, 4.52 L/kWh, until a TVA factor is researched).
 - `lib/ledger.ts`: SHA-256 hash chain plus Ed25519 signing.
 - `worker/index.ts`: the Cloudflare Worker and Durable Object.
 - `lib/data.ts`: the six host communities, cooling recommendations and demo figures.

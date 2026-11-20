@@ -7,13 +7,14 @@ const IT_MW = 80; // 80% of 100 MW IT capacity
 const PUE = 1.12; // liquid cooling, closed loop
 const BATTERY_MW = 12;
 const BATTERY_MWH = 24; // 2-hour battery, matches typical curtailment length
-const RAMP_MIN = 4; // inside the 5-minute dispatch window
+const RAMP_MIN = 4; // inside the 10-minute dispatch window
 const HISTORY_MIN = 24 * 60;
-const SIM_EPOCH = Date.parse("2026-08-14T12:00:00-04:00"); // a Stage 2 drought afternoon in Charlotte
+const SIM_EPOCH = Date.parse("2026-08-14T12:00:00-05:00"); // a summer afternoon in Memphis
 
 export type Telemetry = Reading & {
   ts: string;
-  baselineMW: number;
+  inEvent: boolean;
+  uncutMW: number; // what the facility would draw with no event
   batteryMW: number; // + discharging, - charging
   batterySoc: number; // 0..1
   computeShedMW: number;
@@ -53,7 +54,7 @@ function fresh(): State {
   return s;
 }
 
-export const state = () => (g.moyai ??= fresh());
+const state = () => (g.moyai ??= fresh());
 export const reset = () => (g.moyai = fresh());
 
 const tsOf = (min: number) => new Date(SIM_EPOCH + min * 60_000).toISOString();
@@ -78,8 +79,9 @@ function step(s: State, min: number) {
   const t: Telemetry = {
     min,
     ts: tsOf(min),
+    inEvent: !!ev,
     facilityMW,
-    baselineMW: base,
+    uncutMW: base,
     batteryMW,
     batterySoc: s.soc,
     computeShedMW: Math.max(0, shed - batteryMW),
@@ -90,7 +92,8 @@ function step(s: State, min: number) {
   };
   s.history.push(t);
   if (s.history.length > HISTORY_MIN) s.history.shift();
-  if (min % 15 === 0) append(s.ledger, t.ts, "reading", { facilityMW: +facilityMW.toFixed(3), potableWaterGPM: 0 });
+  // every minute during an event, so the log alone can back the verified ramp time
+  if (min % 15 === 0 || ev) append(s.ledger, t.ts, "reading", { facilityMW: +facilityMW.toFixed(3), potableWaterGPM: 0 });
   if (ev && min === ev.endMin - 1) finish(s, ev);
 }
 
@@ -109,7 +112,7 @@ export function tick() {
   return s;
 }
 
-export function startEvent(targetPct = 0.25, durationMin = 120) {
+export function startEvent(targetPct = 0.3, durationMin = 120) {
   // a non-integer duration would never hit the end minute and lock the sim; a string would concatenate
   if (typeof targetPct !== "number" || !(targetPct > 0 && targetPct < 1) || !Number.isInteger(durationMin) || durationMin < 5 || durationMin > 600)
     throw new RangeError("targetPct must be a number between 0 and 1, durationMin a whole number from 5 to 600");
