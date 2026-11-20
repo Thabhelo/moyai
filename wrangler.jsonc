@@ -2,6 +2,10 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "moyai",
   "main": "worker/index.ts",
+  "routes": [
+    { "pattern": "moyai.fyi", "custom_domain": true },
+    { "pattern": "www.moyai.fyi", "custom_domain": true }
+  ],
   "compatibility_date": "2026-06-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {

@@ -2,7 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import { certificate, reset, startEvent, tick } from "../lib/sim";
 import { verifyChain } from "../lib/ledger";
 
-type Env = { CAMPUS: DurableObjectNamespace<Campus> };
+type Env = { CAMPUS: DurableObjectNamespace<Campus>; ASSETS: Fetcher };
 
 const COUNTIES = ["shelby", "richland", "taylor", "laramie", "pottawattamie", "wasco"];
 const KINDS = ["noise", "exhaust", "water", "traffic", "power"];
@@ -83,6 +83,8 @@ export class Campus extends DurableObject<Env> {
 
 export default {
   fetch(req: Request, env: Env) {
+    // Pages are static files; only /api/* needs the campus.
+    if (!new URL(req.url).pathname.startsWith("/api/")) return env.ASSETS.fetch(req);
     return env.CAMPUS.get(env.CAMPUS.idFromName("campus")).fetch(req);
   },
 } satisfies ExportedHandler<Env>;

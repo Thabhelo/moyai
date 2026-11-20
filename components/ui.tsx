@@ -3,7 +3,7 @@ import { LEVEL_WORD, type Level } from "@/lib/data";
 
 export function Card({ title, demo = true, children, className = "" }: { title?: string; demo?: boolean; children: ReactNode; className?: string }) {
   return (
-    <section className={`rounded-xl bg-card p-4 sm:p-5 ${className}`}>
+    <section className={`plush rounded-[28px] bg-card p-5 sm:p-6 ${className}`}>
       {title && (
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="text-[15px] font-medium">{title}</h2>
@@ -23,7 +23,7 @@ export const LevelPill = ({ level }: { level: Level }) => <Pill tone={level}>{LE
 export function Bar({ value, max, mark }: { value: number; max: number; mark?: number }) {
   return (
     <div className="relative h-2 rounded-full bg-accent-soft">
-      <div className="h-2 rounded-full bg-accent" style={{ width: `${Math.min(100, (value / max) * 100)}%` }} />
+      <div className="h-2 rounded-full bg-accent transition-[width] duration-700" style={{ width: `${Math.min(100, (value / max) * 100)}%` }} />
       {mark !== undefined && <div className="absolute -top-1 h-4 w-0.5 bg-ink" style={{ left: `${(mark / max) * 100}%` }} title="U.S." />}
     </div>
   );
@@ -56,7 +56,7 @@ export function Row({ label, children }: { label: string; children: ReactNode })
 
 export function Button({ children, onClick, disabled, quiet }: { children: ReactNode; onClick?: () => void; disabled?: boolean; quiet?: boolean }) {
   return (
-    <button onClick={onClick} disabled={disabled} className={`rounded-lg px-4 py-2 text-sm font-medium transition-opacity disabled:opacity-50 ${quiet ? "bg-accent-soft text-accent" : "bg-accent text-white dark:text-[#0e1615]"}`}>
+    <button onClick={onClick} disabled={disabled} className={`rounded-full px-5 py-2 text-sm font-medium transition-opacity disabled:opacity-50 ${quiet ? "bg-accent-soft text-accent" : "bg-accent text-on-accent"}`}>
       {children}
     </button>
   );
