@@ -34,7 +34,7 @@ No sign-in. Each audience has its own address, and every page reads the same liv
 | `/county` | County government | Overview, Live readings, Who pays, Grid relief, Cooling, Batteries, Local jobs, Alerts |
 | `/operator` | Data center and grid operations | Operations, Grid relief (sends the grid signal), Cooling (marks changes applied), Live readings, Our promises |
 
-Census figures in `lib/data.ts` are real (U.S. Census ACS 2020-2024). Every other number is labeled "Demo data". The look follows Plush UI (plush-ui.pages.dev) tokens: soft surfaces, pill buttons, 28px cards.
+Census figures in `lib/data.ts` are real (U.S. Census ACS 2020-2024). Every other number is labeled "Demo data". The look is Plush UI (github.com/dominikmartn/plush-ui, MIT): its tokens, Open Runde font, and its real progress ring, progress bar and tabs, installed in `components/ui/` through the shadcn tool. On top sit a WebGL colour field (`components/shader.tsx`), liquid-glass surfaces and a pointer glow, all hand-written.
 
 ## API
 

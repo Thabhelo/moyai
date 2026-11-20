@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import { Footer, Nav, Num, Reveal, Rope } from "@/components/site";
+import { Shader } from "@/components/shader";
+import { Ring } from "@/components/kit";
 import { useMoyai } from "@/components/useMoyai";
 import { facts } from "@/components/workspace";
 
@@ -29,7 +31,8 @@ export default function Landing() {
     <>
       <Nav />
       <main className="overflow-x-clip">
-        <section className="flex min-h-[calc(100svh-4rem)] flex-col items-center justify-center text-center">
+        <section className="relative flex min-h-svh flex-col items-center justify-center text-center">
+          <Shader className="fade absolute inset-0 -z-10 h-full w-full" />
           <div className="hero-out w-full">
             <h1 aria-label="Moyai" className="font-head text-[clamp(6rem,27vw,23rem)] font-extrabold leading-[0.9] tracking-[-0.05em]">
               {"Moyai".split("").map((ch, i) => (
@@ -45,11 +48,11 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-5xl px-4 py-28 sm:px-6">
+        <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
           <Reveal>
             <h2 className="text-5xl font-bold sm:text-7xl">The grid asks.<br /><span className="text-ink3">The load drops.</span></h2>
           </Reveal>
-          <Reveal className="plush grow-in mt-12 rounded-[40px] bg-card p-6 sm:p-10">
+          <Reveal className="plush grow-in mt-12 rounded-[40px] bg-card p-8 sm:p-14">
             <svg viewBox="0 0 600 230" role="img" aria-label="Power draw falls to 70 percent four minutes after the grid asks" className="w-full">
               <path d="M0,62 C150,50 300,74 600,60" fill="none" stroke="var(--ink3)" strokeWidth="1.5" strokeDasharray="3 7" strokeLinecap="round" />
               <path className="draw" pathLength={1} d="M0,62 C110,52 220,72 330,64 C352,62 356,168 380,170 C450,176 520,164 600,170" fill="none" stroke="var(--ink)" strokeWidth="3" strokeLinecap="round" />
@@ -63,22 +66,25 @@ export default function Landing() {
           </Reveal>
         </section>
 
-        <section className="mx-auto max-w-5xl px-4 py-28 sm:px-6">
+        <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
           <Reveal>
             <p className="flex items-center gap-2 text-ink2"><span className="relative flex h-2.5 w-2.5"><span className="pulse absolute inset-0 rounded-full bg-hot" /><span className="relative h-2.5 w-2.5 rounded-full bg-hot" /></span>Open to everyone, live</p>
             <h2 className="mt-2 text-5xl font-bold sm:text-7xl">The same proof for all.</h2>
           </Reveal>
-          <div className="mt-14 grid gap-12 sm:grid-cols-3">
-            <Reveal><Live value={f ? <Num value={f.power} digits={1} /> : "–"} unit="megawatts the campus draws right now" /></Reveal>
-            <Reveal delay={120}><Live value={f ? <Num value={f.reliability} suffix="%" /> : "–"} unit="of grid signals answered in time" /></Reveal>
-            <Reveal delay={240}><Live value="$0" unit="of grid upgrade costs on household bills" /></Reveal>
+          <div className="relative mt-14">
+            <Shader className="absolute -inset-x-[20vw] -inset-y-24 -z-10 h-[calc(100%+12rem)] w-[calc(100%+40vw)]" />
+            <div className="grid gap-6 md:grid-cols-3">
+              <Reveal><Glass ring={f ? (f.power / 110) * 100 : 0} value={f ? <Num value={f.power} digits={1} /> : "–"} unit="megawatts drawn right now, of 110 permitted" /></Reveal>
+              <Reveal delay={120}><Glass ring={f ? f.reliability : 0} value={f ? <Num value={f.reliability} suffix="%" /> : "–"} unit="of grid signals answered in time" /></Reveal>
+              <Reveal delay={240}><Glass ring={0} value="$0" unit="of grid upgrade costs on household bills" /></Reveal>
+            </div>
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-5xl gap-4 px-4 pb-28 sm:px-6 md:grid-cols-3">
+        <section className="doors mx-auto grid max-w-5xl gap-6 px-6 pb-32 sm:px-10 md:grid-cols-3">
           {DOORS.map((d, i) => (
             <Reveal key={d.href} delay={i * 120}>
-              <Link href={d.href} className="door plush flex min-h-72 flex-col justify-between rounded-[32px] bg-card p-7">
+              <Link href={d.href} className="door plush flex min-h-72 flex-col justify-between rounded-[32px] bg-card p-9">
                 <span className="flex items-start justify-between">
                   <svg viewBox="0 0 72 52" className="h-14 w-20" aria-hidden>{d.art}</svg>
                   <span className="go flex h-12 w-12 items-center justify-center rounded-full text-xl" aria-hidden>→</span>
@@ -99,11 +105,15 @@ export default function Landing() {
   );
 }
 
-function Live({ value, unit }: { value: React.ReactNode; unit: string }) {
+// A progress metric on liquid glass: the ring fills toward the limit, the figure counts up.
+function Glass({ value, unit, ring }: { value: React.ReactNode; unit: string; ring: number }) {
   return (
-    <div>
-      <div className="font-head text-7xl font-extrabold tracking-tight sm:text-8xl">{value}</div>
-      <p className="mt-2 text-lg text-ink2">{unit}</p>
+    <div className="glass plush flex h-full flex-col gap-6 rounded-[32px] p-9">
+      <Ring pct={ring} size={64} label={unit}>{" "}</Ring>
+      <div>
+        <div className="font-head text-6xl font-bold tracking-tight">{value}</div>
+        <p className="mt-2 text-lg text-ink2">{unit}</p>
+      </div>
     </div>
   );
 }

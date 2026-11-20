@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import { LEVEL_WORD, type Level } from "@/lib/data";
+import { Progress } from "@/components/ui/progress";
+import { ProgressRing } from "@/components/ui/progress-ring";
 
 export function Card({ title, demo = true, children, className = "" }: { title?: string; demo?: boolean; children: ReactNode; className?: string }) {
   return (
-    <section className={`plush rounded-[28px] bg-card p-5 sm:p-6 ${className}`}>
+    <section className={`plush rounded-[28px] bg-card p-6 sm:p-8 ${className}`}>
       {title && (
-        <div className="mb-3 flex items-baseline justify-between gap-3">
+        <div className="mb-5 flex items-baseline justify-between gap-3">
           <h2 className="text-[15px] font-medium">{title}</h2>
           {demo && <span className="shrink-0 text-xs text-ink3">Demo data</span>}
         </div>
@@ -59,5 +61,28 @@ export function Button({ children, onClick, disabled, quiet }: { children: React
     <button onClick={onClick} disabled={disabled} className={`rounded-full px-5 py-2 text-sm font-medium transition-opacity disabled:opacity-50 ${quiet ? "bg-accent-soft text-accent" : "bg-accent text-on-accent"}`}>
       {children}
     </button>
+  );
+}
+
+/** Progress metric: a name, a figure, a Plush progress bar toward its limit, and a status word. */
+export function Metric({ name, value, of, pct, tone, word }: { name: string; value: string; of?: string; pct: number; tone: Level | "info"; word: string }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-[20px] bg-canvas p-5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm text-ink2">{name}</span>
+        <Pill tone={tone}>{word}</Pill>
+      </div>
+      <div className="num text-2xl font-semibold">{value}{of && <span className="text-base font-normal text-ink3"> {of}</span>}</div>
+      <Progress value={pct} aria-label={name} />
+    </div>
+  );
+}
+
+/** A Plush progress ring with a short label in the middle. */
+export function Ring({ pct, size = 84, children, label }: { pct: number; size?: number; children?: ReactNode; label: string }) {
+  return (
+    <ProgressRing value={pct} aria-label={label} style={{ "--plush-ring-size": `${size}px` } as React.CSSProperties}>
+      {children ?? `${Math.round(pct)}%`}
+    </ProgressRing>
   );
 }

@@ -9,13 +9,28 @@ const LINKS = [
 ];
 
 export function Nav({ current }: { current?: string }) {
+  // One listener for the whole page: tells the card under the pointer where the pointer is, for the glow and the tilt.
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      const el = (e.target as Element).closest?.(".plush") as HTMLElement | null;
+      if (!el) return;
+      const b = el.getBoundingClientRect();
+      el.style.setProperty("--mx", `${e.clientX - b.left}px`);
+      el.style.setProperty("--my", `${e.clientY - b.top}px`);
+      el.style.setProperty("--px", `${(e.clientX - b.left) / b.width}`);
+      el.style.setProperty("--py", `${(e.clientY - b.top) / b.height}`);
+    };
+    addEventListener("pointermove", move, { passive: true });
+    return () => removeEventListener("pointermove", move);
+  }, []);
   return (
-    <nav aria-label="Moyai" className="glass sticky top-0 z-20 border-b border-line">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+    <nav aria-label="Moyai" className="fixed inset-x-0 top-4 z-20 px-4">
+      <div className="scrollbar" aria-hidden />
+      <div className="glass mx-auto flex h-16 max-w-3xl items-center justify-between gap-4 rounded-full pl-7 pr-2.5">
         <Link href="/" className="font-head text-2xl font-bold tracking-tight">Moyai</Link>
         <div className="seg flex overflow-x-auto rounded-full p-1 text-[0.9rem] sm:text-base">
           {LINKS.map((l) => (
-            <Link key={l.id} href={l.href} aria-current={current === l.id ? "page" : undefined} className="shrink-0 rounded-full px-3 py-1.5 text-ink2 transition-colors hover:text-ink sm:px-5">
+            <Link key={l.id} href={l.href} aria-current={current === l.id ? "page" : undefined} className="shrink-0 rounded-full px-3 py-2 text-ink2 transition-colors hover:text-ink sm:px-5">
               {l.name}
             </Link>
           ))}
@@ -28,7 +43,7 @@ export function Nav({ current }: { current?: string }) {
 export function Footer() {
   return (
     <footer className="border-t border-line">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-12 text-sm text-ink2 sm:px-6">
+      <div className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-16 text-sm text-ink2 sm:px-10">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <div className="font-head text-2xl font-semibold text-ink">Moyai <span className="font-normal text-ink3">舫い</span></div>
