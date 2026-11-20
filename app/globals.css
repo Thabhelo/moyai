@@ -424,10 +424,11 @@ button:active:not(:disabled) { transform: scale(0.95); }
 .scrollbar { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 30; transform-origin: left; transform: scaleX(0); background: var(--plush-select-line); }
 @supports (animation-timeline: scroll()) { .scrollbar { animation: scrollbar linear both; animation-timeline: scroll(root); } @keyframes scrollbar { to { transform: scaleX(1); } } }
 input[type="range"] { accent-color: var(--accent); width: 100%; }
-.pill-ok { color: var(--ok); background: var(--ok-bg); }
-.pill-warn { color: var(--warn); background: var(--warn-bg); }
-.pill-bad { color: var(--bad); background: var(--bad-bg); }
-.pill-info { color: var(--ink2); background: var(--fill); }
+/* Status words are plain coloured text, with no tinted background behind them. */
+.pill-ok { color: var(--ok); }
+.pill-warn { color: var(--warn); }
+.pill-bad { color: var(--bad); }
+.pill-info { color: var(--ink2); }
 .large { font-size: 20px; }
 
 /* Motion: one entrance per screen, transform and opacity only. */
@@ -497,7 +498,7 @@ main.enter > *:nth-child(n + 5) { animation-delay: 280ms; }
 /* Homepage: the hero photo eases in from a soft zoom, then drifts very slowly. */
 .home, .home h1, .home h2, .home .font-head { font-family: var(--font-tight), system-ui, sans-serif; }
 .home h2, .home .font-head { font-weight: 500; letter-spacing: -0.035em; }
-.hero-photo { border-radius: 0 0 40px 40px; background: #b9623a; }
+.hero-photo { border-radius: 0 0 40px 40px; background: #b9d4c2; }
 /* The rest of the landing page sits on a faint green wash of the same photo. */
 .home { position: relative; background: linear-gradient(180deg, #eaf5ee 0%, #f3faf5 28%, #eff8f2 65%, #e2f1e7 100%); }
 .home::before { content: ""; position: absolute; left: 0; right: 0; top: min(94svh, 55.8vw); aspect-ratio: 1600 / 318; background: url(/bg-green.webp) top / 100% auto no-repeat; opacity: 0.5; pointer-events: none; }
@@ -513,6 +514,7 @@ main.enter > *:nth-child(n + 5) { animation-delay: 280ms; }
 .door { transition: transform 0.5s var(--spring), box-shadow 0.3s ease-out; }
 /* The footer panel: a soft tinted surface in the same theme as the page. */
 .onink { background: color-mix(in srgb, var(--ink) 4%, var(--canvas)); }
+.wordmark, .logo { font-family: var(--font-tight), system-ui, sans-serif; }
 .wordmark { margin-bottom: -0.12em; background: linear-gradient(180deg, var(--ink) 10%, color-mix(in srgb, var(--ink) 5%, transparent) 92%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .doors { perspective: 1200px; }
 .door:hover, .door:focus-visible { transform: translateY(-8px) rotateX(calc((var(--py, 0.5) - 0.5) * -10deg)) rotateY(calc((var(--px, 0.5) - 0.5) * 10deg)); box-shadow: 0 1px 3px rgba(20, 20, 20, 0.12), 0 18px 40px rgba(20, 20, 20, 0.08); }

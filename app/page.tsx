@@ -1,30 +1,26 @@
 "use client";
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { Inter_Tight } from "next/font/google";
 import { Footer, Nav, Num, Reveal, Rope } from "@/components/site";
 import { Shader } from "@/components/shader";
 import { Ring } from "@/components/kit";
 import { useMoyai } from "@/components/useMoyai";
 import { facts } from "@/components/workspace";
 
-// The homepage typeface: a tight geometric sans close to the wordmark in the hero photo.
-const tight = Inter_Tight({ variable: "--font-tight", subsets: ["latin"], display: "swap" });
-
 const stroke = { fill: "none", stroke: "var(--ink)", strokeWidth: 3, strokeLinecap: "round" as const };
 
 // One small moving picture per audience: neighbors, the county's ledger, the load dropping.
 const DOORS = [
   {
-    href: "/community", who: "Community", line: "Is the data center following the rules?",
+    href: "/community", who: "Residents", line: "Results in plain language: water saved, power used and bill protection",
     art: [0, 1, 2].map((i) => <circle key={i} className="bob" style={{ animationDelay: `${i * 0.25}s` }} cx={14 + i * 22} cy={30} r={7} fill={i === 1 ? "var(--hot)" : "var(--ink)"} />),
   },
   {
-    href: "/county", who: "County", line: "Who pays, and what was promised?",
+    href: "/county", who: "County staff", line: "Their own data center only: the evidence, permit limits and commitments",
     art: [0, 1, 2].map((i) => <rect key={i} className="bar" style={{ animationDelay: `${i * 0.3}s` }} x={8 + i * 22} y={[18, 8, 26][i]} width={10} height={[30, 40, 22][i]} rx={5} fill={i === 1 ? "var(--hot)" : "var(--ink)"} />),
   },
   {
-    href: "/operator", who: "Data center", line: "Cut power on a grid signal and get it verified",
+    href: "/operator", who: "Operators", line: "Recommendations and verified savings",
     art: [<path key="l" className="dash" pathLength={1} d="M4,16 H30 C36,16 34,40 40,40 H68" {...stroke} />, <circle key="d" cx={30} cy={16} r={5} fill="var(--hot)" />],
   },
 ];
@@ -37,13 +33,27 @@ const ANSWERS: { problem: string; answer: string; href?: string }[] = [
   { problem: "Too few electricians and technicians", answer: "Paid training for people who live next to the site, tied to the operator's local hiring promise.", href: "/training" },
 ];
 
+// From the team deck: poverty rates next to three AI campuses, the four steps, and the three functions.
+const PRICE = [{ pct: 32, place: "Memphis, TN" }, { pct: 27, place: "Richland Parish, LA" }, { pct: 26.5, place: "Abilene, TX" }];
+const STEPS = [
+  { name: "Measure", body: "Cooling power, water, total power, peak demand and heat recovered." },
+  { name: "Reduce", body: "Recommend cooling settings, pump and fan speeds, maintenance and heat recovery." },
+  { name: "Verify", body: "Compare every change against a baseline adjusted for weather and computing load." },
+  { name: "Protect", body: "Track who pays for grid upgrades, so facility costs stay off household bills." },
+];
+const FUNCTIONS = [
+  { fn: "Cooling optimization", benefit: "Less water, lower power demand" },
+  { fn: "Public verification", benefit: "Proof that operators keep their promises" },
+  { fn: "Cost tracking", benefit: "Facility costs do not shift to households" },
+];
+
 export default function Landing() {
   const s = useMoyai("shelby");
   const f = s && facts(s);
   return (
     <>
       <Nav />
-      <main className={`home ${tight.variable} overflow-x-clip`}>
+      <main className="home overflow-x-clip">
         <section className="text-center">
           <div className="hero-photo relative mx-auto aspect-[2400/1339] max-h-[94svh] w-full overflow-hidden">
             <img
@@ -53,7 +63,7 @@ export default function Landing() {
               width={2400}
               height={1339}
               fetchPriority="high"
-              alt="moyai, Team Tornadoes. A power pylon and its lines against an orange evening sky."
+              alt="moyai, Team Tornadoes. A power pylon and its lines in soft green."
               className="hero-img h-full w-full object-cover"
             />
           </div>
@@ -74,22 +84,73 @@ export default function Landing() {
         </section>
 
         <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
-          <Tagline lines={["Power management", "a utility can check"]} />
+          <Reveal><p className="text-lg text-ink2">The problem</p></Reveal>
+          <Tagline lines={["AI data centers use huge amounts of power and water,", "much of it for cooling. Residents cannot see that use,", "and they pay higher bills because of it."]} />
+        </section>
+
+        <section className="mx-auto max-w-5xl px-6 pb-32 sm:px-10">
           <Reveal>
-            <p className="mt-5 max-w-2xl text-xl text-ink2">When the grid is under strain, the data center lowers its power use by 30% within minutes. Moyai measures the cut against normal use and publishes the result.</p>
+            <h2 className="text-5xl font-bold sm:text-6xl">Who pays the price?</h2>
+            <p className="mt-5 max-w-2xl text-xl text-ink2">Many households near major AI projects already face financial strain. This is the share of residents living in poverty next to three of them.</p>
           </Reveal>
-          <Reveal className="plush grow-in mt-12 rounded-[40px] bg-card p-8 sm:p-14">
-            <svg viewBox="0 0 600 230" role="img" aria-label="Power draw falls to 70 percent four minutes after the grid asks" className="w-full">
+          <div className="mt-12 grid gap-10 sm:grid-cols-3">
+            {PRICE.map((x, i) => (
+              <Reveal key={x.place} delay={i * 120}>
+                <div className="font-head text-7xl font-bold tracking-tight sm:text-8xl"><Num value={x.pct} digits={x.pct % 1 ? 1 : 0} suffix="%" /></div>
+                <p className="mt-2 text-xl">{x.place}</p>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal><p className="mt-8 text-sm text-ink3">Source: U.S. Census American Community Survey 2020-2024. The U.S. rate is 12.5%.</p></Reveal>
+        </section>
+
+        <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
+          <Reveal><p className="text-lg text-ink2">Our solution</p></Reveal>
+          <Tagline lines={["Moyai helps data centers cut their resource use,", "proves it publicly,", "and protects neighbors from the costs."]} />
+          <Reveal>
+            <p className="mt-8 max-w-2xl text-xl text-ink2">Cooling optimization is the action. Community cost protection is the outcome.</p>
+          </Reveal>
+        </section>
+
+        <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
+          <Reveal><h2 className="text-5xl font-bold sm:text-6xl">How it works</h2></Reveal>
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
+            {STEPS.map((a, i) => (
+              <Reveal key={a.name} delay={(i % 2) * 120}>
+                <div className="plush flex h-full flex-col gap-3 rounded-[28px] bg-card p-8">
+                  <span className="flex items-center gap-3 text-ink2"><span className="num flex h-9 w-9 items-center justify-center rounded-full bg-[var(--fill)] text-ink">{i + 1}</span>{a.name}</span>
+                  <span className="font-head text-2xl font-semibold leading-snug">{a.body}</span>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal className="plush grow-in mt-6 rounded-[40px] bg-card p-8 sm:p-14">
+            <svg viewBox="0 0 600 230" role="img" aria-label="Measured power use falls below the expected level after a cooling change" className="w-full">
               <path d="M0,62 C150,50 300,74 600,60" fill="none" stroke="var(--ink3)" strokeWidth="1.5" strokeDasharray="3 7" strokeLinecap="round" />
               <path className="draw" pathLength={1} d="M0,62 C110,52 220,72 330,64 C352,62 356,168 380,170 C450,176 520,164 600,170" fill="none" stroke="var(--ink)" strokeWidth="3" strokeLinecap="round" />
               <g className="after-draw">
                 <circle className="pulse" cx="330" cy="64" r="6" fill="var(--hot)" />
                 <circle cx="330" cy="64" r="6" fill="var(--hot)" />
-                <text x="330" y="38" textAnchor="middle" fill="var(--ink2)" fontSize="15">Grid signal</text>
-                <text x="470" y="206" textAnchor="middle" fill="var(--ink)" fontSize="17" fontWeight="700">30% less power 4 minutes after the signal</text>
+                <text x="330" y="38" textAnchor="middle" fill="var(--ink2)" fontSize="15">Change applied</text>
+                <text x="560" y="44" textAnchor="end" fill="var(--ink3)" fontSize="14">Expected use in this weather</text>
+                <text x="470" y="206" textAnchor="middle" fill="var(--ink)" fontSize="17" fontWeight="700">Measured use: the gap is the verified saving</text>
               </g>
             </svg>
           </Reveal>
+        </section>
+
+        <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
+          <Reveal><h2 className="text-5xl font-bold sm:text-6xl">Three functions, three benefits</h2></Reveal>
+          <div className="mt-12">
+            {FUNCTIONS.map((x, i) => (
+              <Reveal key={x.fn} delay={i * 100}>
+                <div className="grid gap-2 border-t border-line py-7 sm:grid-cols-[1fr_1.4fr] sm:gap-10">
+                  <span className="text-xl text-ink2">{x.fn}</span>
+                  <span className="font-head text-3xl font-semibold leading-tight">{x.benefit}</span>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </section>
 
         <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
@@ -102,7 +163,7 @@ export default function Landing() {
                 <div className="plush flex h-full flex-col gap-3 rounded-[28px] bg-card p-8">
                   <span className="text-ink2">{a.problem}</span>
                   <span className="font-head text-2xl font-semibold leading-snug">{a.answer}</span>
-                  {a.href && <Link href={a.href} className="mt-auto pt-2 text-ink2 underline-offset-4 hover:text-ink hover:underline">See the training program →</Link>}
+                  {a.href && <Link href={a.href} className="ulink mt-auto self-start pt-2">See the training program →</Link>}
                 </div>
               </Reveal>
             ))}
@@ -124,6 +185,9 @@ export default function Landing() {
           </div>
         </section>
 
+        <section className="mx-auto max-w-5xl px-6 pb-10 sm:px-10">
+          <Reveal><h2 className="text-5xl font-bold sm:text-6xl">Who sees what</h2></Reveal>
+        </section>
         <section className="doors mx-auto grid max-w-5xl gap-6 px-6 pb-32 sm:px-10 md:grid-cols-3">
           {DOORS.map((d, i) => (
             <Reveal key={d.href} delay={i * 120}>

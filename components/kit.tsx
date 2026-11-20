@@ -17,7 +17,7 @@ export function Card({ title, children, className = "" }: { title?: string; demo
 }
 
 export function Pill({ tone, children }: { tone: Level | "info"; children: ReactNode }) {
-  return <span className={`pill-${tone} inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium`}>{children}</span>;
+  return <span className={`pill-${tone} inline-block whitespace-nowrap text-sm font-semibold`}>{children}</span>;
 }
 export const LevelPill = ({ level }: { level: Level }) => <Pill tone={level}>{LEVEL_WORD[level]}</Pill>;
 

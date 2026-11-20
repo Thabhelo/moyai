@@ -28,7 +28,7 @@ export function Nav({ current }: { current?: string }) {
     <nav aria-label="Moyai" className="fixed inset-x-0 top-4 z-20 px-4">
       <div className="scrollbar" aria-hidden />
       <div className="glass mx-auto flex h-16 max-w-4xl items-center justify-between gap-4 rounded-full pl-7 pr-2.5">
-        <Link href="/" className="font-head text-2xl font-bold tracking-tight">Moyai</Link>
+        <Link href="/" className="logo text-[1.7rem] font-medium tracking-tight">moyai</Link>
         <div className="seg flex overflow-x-auto rounded-full p-1 text-[0.9rem] sm:text-base">
           {LINKS.map((l) => (
             <Link key={l.id} href={l.href} aria-current={current === l.id ? "page" : undefined} className="shrink-0 rounded-full px-3 py-2 text-ink2 transition-colors hover:text-ink sm:px-5">
@@ -63,7 +63,7 @@ export function Footer() {
           <Rope className="mt-14 h-12 w-full" />
           <p className="py-6 text-sm text-ink2">Team Tornadoes · BESmart Innovation Challenge 2026</p>
         </div>
-        <div aria-hidden className="wordmark grow-in select-none text-center font-head text-[clamp(7rem,31vw,27rem)] font-bold leading-[0.72] tracking-[-0.05em]">Moyai</div>
+        <div aria-hidden className="wordmark grow-in select-none text-center text-[clamp(7rem,31vw,27rem)] font-medium leading-[0.72] tracking-[-0.055em]">moyai</div>
       </div>
     </footer>
   );
