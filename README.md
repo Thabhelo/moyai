@@ -25,7 +25,7 @@ pnpm deploy       # builds and publishes to Cloudflare
 
 ## Deploys
 
-Every push to `main` runs the tests and the build in GitHub Actions (`.github/workflows/ci.yml`), then publishes to https://moyai.fyi. The deploy step needs two repository secrets: `CLOUDFLARE_API_TOKEN` (a Cloudflare token with the "Edit Cloudflare Workers" template) and `CLOUDFLARE_ACCOUNT_ID`. Without them the step is skipped with a warning.
+The Cloudflare Worker is connected to this repository (Workers Builds). Every push to `main`, by anyone, is built and published to https://moyai.fyi by Cloudflare. GitHub Actions (`.github/workflows/ci.yml`) runs the tests and the build on each push. The product requirements document is served at https://prd.moyai.fyi.
 
 ## Pages
 

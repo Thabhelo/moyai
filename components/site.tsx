@@ -56,7 +56,7 @@ export function Footer() {
                 {LINKS.map((l) => (
                   <li key={l.id}><Link href={l.href} className="ulink">{l.name}</Link></li>
                 ))}
-                <li><a href="/prd.pdf" target="_blank" rel="noopener" className="ulink">Product requirements</a></li>
+                <li><a href="https://prd.moyai.fyi" target="_blank" rel="noopener" className="ulink">Product requirements</a></li>
               </ul>
             </Reveal>
           </div>
