@@ -23,6 +23,10 @@ pnpm deploy       # builds and publishes to Cloudflare
 
 1 real second = 1 simulated minute, so a 30-minute grid signal takes 30 seconds.
 
+## Deploys
+
+Every push to `main` runs the tests and the build in GitHub Actions (`.github/workflows/ci.yml`), then publishes to https://moyai.fyi. The deploy step needs two repository secrets: `CLOUDFLARE_API_TOKEN` (a Cloudflare token with the "Edit Cloudflare Workers" template) and `CLOUDFLARE_ACCOUNT_ID`. Without them the step is skipped with a warning.
+
 ## Pages
 
 No sign-in. Each audience has its own address, and every page reads the same live record.
