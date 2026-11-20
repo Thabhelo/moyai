@@ -27,8 +27,8 @@ export function Nav({ current }: { current?: string }) {
   return (
     <nav aria-label="Moyai" className="fixed inset-x-0 top-4 z-20 px-4">
       <div className="scrollbar" aria-hidden />
-      <div className="glass mx-auto flex h-16 max-w-4xl items-center justify-between gap-4 rounded-full pl-7 pr-2.5">
-        <Link href="/" className="logo text-[1.7rem] font-medium tracking-tight">moyai</Link>
+      <div className="glass mx-auto flex h-16 max-w-4xl items-center gap-2 rounded-full pl-7 pr-2.5">
+        <Link href="/" className="logo mr-auto text-[1.7rem] font-medium tracking-tight">moyai</Link>
         <div className="seg flex overflow-x-auto rounded-full p-1 text-[0.9rem] sm:text-base">
           {LINKS.map((l) => (
             <Link key={l.id} href={l.href} aria-current={current === l.id ? "page" : undefined} className="shrink-0 rounded-full px-3 py-2 text-ink2 transition-colors hover:text-ink sm:px-5">
@@ -36,8 +36,26 @@ export function Nav({ current }: { current?: string }) {
             </Link>
           ))}
         </div>
+        <ThemeButton />
       </div>
     </nav>
+  );
+}
+
+/** Switches the whole site between light and dark, and remembers the choice. */
+function ThemeButton() {
+  const flip = () => {
+    const dark = document.documentElement.classList.toggle("dark");
+    try { localStorage.setItem("moyai-theme", dark ? "dark" : "light"); } catch {}
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#0b0b0b" : "#fbfbfa");
+  };
+  return (
+    <button type="button" onClick={flip} aria-label="Switch between light and dark" title="Light or dark" className="theme-btn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <g className="sun"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></g>
+        <path className="moon" d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z" />
+      </svg>
+    </button>
   );
 }
 

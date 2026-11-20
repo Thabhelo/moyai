@@ -49,7 +49,6 @@ export function Shader({ className = "" }: { className?: string }) {
     gl.vertexAttribPointer(gl.getAttribLocation(prog, "a"), 2, gl.FLOAT, false, 0, 0);
     const u = (n: string) => gl.getUniformLocation(prog, n);
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const darkQ = matchMedia("(prefers-color-scheme: dark)");
     const mouse = [0.5, 0.5];
     const eased = [0.5, 0.5];
     const move = (e: PointerEvent) => {
@@ -73,7 +72,7 @@ export function Shader({ className = "" }: { className?: string }) {
       gl.uniform2f(u("r"), w, h);
       gl.uniform1f(u("t"), ms / 1000 + scrollY / 400);
       gl.uniform2f(u("m"), eased[0], eased[1]);
-      gl.uniform1f(u("dark"), darkQ.matches ? 1 : 0);
+      gl.uniform1f(u("dark"), document.documentElement.classList.contains("dark") ? 1 : 0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       if (!still && visible) id = requestAnimationFrame(draw);
     };

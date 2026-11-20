@@ -20,11 +20,15 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image", title: "Moyai", description: "Data center accountability for communities that host them.", images: ["/og.jpg"] },
 };
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fbfbfa" }, { media: "(prefers-color-scheme: dark)", color: "#0b0b0b" }] };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#fbfbfa" };
+
+// Runs before the first paint, so a saved choice of light or dark never flashes the other one.
+const THEME = `try{var t=localStorage.getItem("moyai-theme");if(t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches)document.documentElement.classList.add("dark")}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${tight.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${tight.variable} h-full antialiased`}>
+      <head><script dangerouslySetInnerHTML={{ __html: THEME }} /></head>
       <body className="min-h-full font-sans">{children}</body>
     </html>
   );
