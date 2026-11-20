@@ -5,7 +5,7 @@ import { COMMITMENTS, COUNTIES, LEVEL_WORD, PAST_EVENTS, RECS, REPORT_KINDS, US,
 import { Bar, Button, Card, LevelPill, Lines, Metric, Pill, Ring, Row } from "@/components/kit";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { activeEvent, post, useMoyai, type MoyaiState } from "@/components/useMoyai";
+import { activeEvent, isPresenter, post, useMoyai, type MoyaiState } from "@/components/useMoyai";
 
 type Role = "county" | "operator" | "resident";
 type Page = "overview" | "live" | "cooling" | "grid" | "pays" | "community" | "jobs" | "alerts";
@@ -499,6 +499,13 @@ function Jobs({ county }: { county: County }) {
 
 function Alerts({ s }: { s: MoyaiState }) {
   const kind = (id: string) => REPORT_KINDS.find((k) => k.id === id)?.en ?? id;
+  const [demoError, setDemoError] = useState("");
+  const [presenter, setPresenter] = useState(false);
+  useEffect(() => setPresenter(isPresenter()), []);
+  const demo = async (path: "tamper" | "reset") => {
+    const r = await post(path);
+    setDemoError(r.ok ? "" : ((await r.json().catch(() => null))?.error ?? "That did not work."));
+  };
   return (
     <>
       <Card title="Needs attention">
@@ -518,10 +525,11 @@ function Alerts({ s }: { s: MoyaiState }) {
             <span className="ml-2 text-sm text-ink2"><span className="num">{s.ledgerLength}</span> entries. Each entry carries a fingerprint of the one before it, so an edited reading shows up at once.</span>
           </div>
           <div className="flex gap-2">
-            <Button quiet onClick={() => post("tamper")}>Test it: edit an old reading</Button>
-            <Button quiet onClick={() => post("reset")}>Start over</Button>
+            {presenter && <Button quiet onClick={() => demo("tamper")}>Test it: edit an old reading</Button>}
+            {presenter && <Button quiet onClick={() => demo("reset")}>Start over</Button>}
           </div>
         </div>
+        {demoError && <p role="status" className="mt-2 text-sm text-ink2">{demoError}</p>}
         <ol className="num mt-3 text-xs text-ink2">
           {s.ledger.toReversed().slice(0, 5).map((e) => (
             <li key={e.seq} className="truncate border-t border-line py-1">#{e.seq} · {e.type.replace("_", " ")} · {e.hash.slice(0, 20)}</li>

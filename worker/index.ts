@@ -2,7 +2,7 @@ import { DurableObject } from "cloudflare:workers";
 import { certificate, reset, startEvent, tick } from "../lib/sim";
 import { verifyChain } from "../lib/ledger";
 
-type Env = { CAMPUS: DurableObjectNamespace<Campus>; ASSETS: Fetcher };
+type Env = { CAMPUS: DurableObjectNamespace<Campus>; ASSETS: Fetcher; DEMO_KEY?: string };
 
 const COUNTIES = ["shelby", "richland", "taylor", "laramie", "pottawattamie", "wasco"];
 const KINDS = ["noise", "exhaust", "water", "traffic", "power"];
@@ -100,10 +100,22 @@ export class Campus extends DurableObject<Env> {
   }
 }
 
+// Resetting wipes resident reports and tampering edits the log, so the public cannot call either.
+// They need the DEMO_KEY secret (.dev.vars locally, `wrangler secret put DEMO_KEY` in production); with no secret set they are off.
+const DEMO_ONLY = ["/api/tamper", "/api/reset"];
+async function demoAllowed(req: Request, env: Env) {
+  const given = req.headers.get("x-demo-key") ?? "";
+  if (!env.DEMO_KEY || !given) return false;
+  const [a, b] = await Promise.all([given, env.DEMO_KEY].map((v) => crypto.subtle.digest("SHA-256", new TextEncoder().encode(v))));
+  return crypto.subtle.timingSafeEqual(a, b);
+}
+
 export default {
-  fetch(req: Request, env: Env) {
+  async fetch(req: Request, env: Env) {
+    const { pathname } = new URL(req.url);
     // Pages are static files; only /api/* needs the campus.
-    if (!new URL(req.url).pathname.startsWith("/api/")) return env.ASSETS.fetch(req);
+    if (!pathname.startsWith("/api/")) return env.ASSETS.fetch(req);
+    if (DEMO_ONLY.includes(pathname) && !(await demoAllowed(req, env))) return json({ error: "Demo controls need the presenter key." }, 403);
     return env.CAMPUS.get(env.CAMPUS.idFromName("campus")).fetch(req);
   },
 } satisfies ExportedHandler<Env>;
