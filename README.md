@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Moyai
 
-## Getting Started
+Verified grid relief for host communities. Team Tornadoes, BESmart Innovation Challenge 2026 (Charlotte, NC).
 
-First, run the development server:
+Moyai checks, in real time, that an AI data center actually cuts its power when the grid asks. It records every reading in a tamper-evident log and issues a signed certificate the utility and county can check. Residents see the same facts in plain English and Spanish.
+
+**All telemetry is simulated**: a 100 MW AI campus with closed-loop cooling and a 2-hour battery. What's real: the curtailment math, the hash-chained audit log and the Ed25519 signatures.
+
+## Stack
+
+Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · Vitest · pnpm
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev          # http://localhost:3000
+pnpm test         # core logic tests
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1 real second = 1 simulated minute, so a 2-hour grid event takes 2 real minutes.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Views
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Who | What |
+|---|---|---|
+| `/operator` | Facility team | Load, battery, paused compute, coolant temps and flow, city water = 0 |
+| `/utility` | Utility dispatcher | "Send grid alert" button, committed level, verified result |
+| `/county` | County planner | Water vs permit, audit log status, signed certificate link, tamper demo |
+| `/public` | Residents | Plain-language status, English/Español |
 
-## Learn More
+## API
 
-To learn more about Next.js, take a look at the following resources:
+| Method | Route | Does |
+|---|---|---|
+| GET | `/api/state` | Advances the sim to now; returns the latest reading, last 3 h, events, the ledger tail and the first broken ledger entry (`brokenAt`) |
+| POST | `/api/event` | Starts a curtailment event `{ targetPct: 0.25, durationMin: 120 }` |
+| GET | `/api/certificate/:id` | Signed certificate for a finished event |
+| POST | `/api/tamper` | Demo: edits an old reading so the log shows it as broken |
+| POST | `/api/reset` | Restarts the simulation |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Code
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `lib/sim.ts`: the simulated campus. Battery covers the cut first, then paused AI training covers the rest.
+- `lib/baseline.ts`: baseline and curtailment verification. Passes if load reaches the committed level within the 5-minute dispatch window and stays there. Also estimates the water saved at power plants (Duke grid, 2.26 L/kWh).
+- `lib/ledger.ts`: SHA-256 hash chain plus Ed25519 signing.
+- `components/useMoyai.ts`: every view polls `/api/state` each second, so a dispatch on one screen shows on all of them.
 
-## Deploy on Vercel
+## Demo script (60 s)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Open `/utility` and `/public` side by side (the second on a phone if possible).
+2. Click **Send grid alert**. The load drops 25% within 5 simulated minutes, and the battery and paused compute share the cut.
+3. Residents' view switches to "using less power to help the grid."
+4. When the event ends, `/county` shows "Verified" and the signed certificate.
+5. Click **Demo: tamper with a reading**. The audit log flips to "Broken at #N."
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Known shortcuts
+
+- State lives in memory in one server process. **Demo from one machine** (`pnpm build && pnpm start`) or a single-instance host. On Vercel, separate serverless instances won't share state. Move the state to Redis/Postgres for that.
+- The baseline is "the hour before the event." Real demand-response programs use multi-day, weather-adjusted baselines.
+- The signing key is created fresh each time the server starts.
+
+## Team split
+
+| Person | Owns |
+|---|---|
+| 1 | Charts (live load vs baseline line on `/utility` and `/operator`), likely with Recharts |
+| 2 | County view polish + certificate page |
+| 3 | Resident view, Spanish copy, community battery co-ownership screen |
+| 4 | Pitch, slides, fact checks (see `../reports/`) |
