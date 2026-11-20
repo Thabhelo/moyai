@@ -33,6 +33,7 @@ No sign-in. Each audience has its own address, and every page reads the same liv
 | `/community` | Residents | One plain-language page in English or Spanish, with a problem report form |
 | `/county` | County government | Overview, Live readings, Who pays, Grid relief, Cooling, Batteries, Local jobs, Alerts |
 | `/operator` | Data center and grid operations | Operations, Grid relief (sends the grid signal), Cooling (marks changes applied), Live readings, Our promises |
+| `/training` | Everyone | How local people are trained as electricians and technicians, and the paycheck auto-invest example |
 
 Census figures in `lib/data.ts` are real (U.S. Census ACS 2020-2024). Every other number is labeled "Demo data". The look is Plush UI (github.com/dominikmartn/plush-ui, MIT): its tokens, Open Runde font, and its real progress ring, progress bar and tabs, installed in `components/ui/` through the shadcn tool. On top sit a WebGL colour field (`components/shader.tsx`), liquid-glass surfaces and a pointer glow, all hand-written.
 

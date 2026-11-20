@@ -24,6 +24,14 @@ const DOORS = [
   },
 ];
 
+// The four bottlenecks named in the challenge prompt, each with what Moyai does.
+const ANSWERS: { problem: string; answer: string; href?: string }[] = [
+  { problem: "Power cannot be delivered fast enough", answer: "Utilities approve new capacity sooner when they can see measured load data and verified power cuts." },
+  { problem: "Connecting to the grid takes years", answer: "A data center that provably lowers its use at peak times can connect without waiting for new power lines." },
+  { problem: "Cooling uses a lot of energy and water", answer: "Moyai recommends cooling changes and checks each saving against normal use in the same weather." },
+  { problem: "Too few electricians and technicians", answer: "Paid training for people who live next to the site, tied to the operator's local hiring promise.", href: "/training" },
+];
+
 export default function Landing() {
   const s = useMoyai("shelby");
   const f = s && facts(s);
@@ -50,7 +58,8 @@ export default function Landing() {
 
         <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
           <Reveal>
-            <h2 className="text-5xl font-bold sm:text-7xl">The load drops<br /><span className="text-ink3">when the grid asks.</span></h2>
+            <h2 className="text-5xl font-bold sm:text-6xl">Power management a utility can check</h2>
+            <p className="mt-5 max-w-2xl text-xl text-ink2">When the grid is under strain, the data center lowers its power use by 30% within minutes. Moyai measures the cut against normal use and publishes the result.</p>
           </Reveal>
           <Reveal className="plush grow-in mt-12 rounded-[40px] bg-card p-8 sm:p-14">
             <svg viewBox="0 0 600 230" role="img" aria-label="Power draw falls to 70 percent four minutes after the grid asks" className="w-full">
@@ -64,6 +73,23 @@ export default function Landing() {
               </g>
             </svg>
           </Reveal>
+        </section>
+
+        <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
+          <Reveal>
+            <h2 className="text-5xl font-bold sm:text-6xl">What holds new data centers back, and what Moyai does about it</h2>
+          </Reveal>
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
+            {ANSWERS.map((a, i) => (
+              <Reveal key={a.problem} delay={(i % 2) * 120}>
+                <div className="plush flex h-full flex-col gap-3 rounded-[28px] bg-card p-8">
+                  <span className="text-ink2">{a.problem}</span>
+                  <span className="font-head text-2xl font-semibold leading-snug">{a.answer}</span>
+                  {a.href && <Link href={a.href} className="mt-auto pt-2 text-ink2 underline-offset-4 hover:text-ink hover:underline">See the training program →</Link>}
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </section>
 
         <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">

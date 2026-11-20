@@ -6,6 +6,7 @@ const LINKS = [
   { id: "community", href: "/community", name: "Community" },
   { id: "county", href: "/county", name: "County" },
   { id: "operator", href: "/operator", name: "Data center" },
+  { id: "training", href: "/training", name: "Training" },
 ];
 
 export function Nav({ current }: { current?: string }) {
@@ -26,7 +27,7 @@ export function Nav({ current }: { current?: string }) {
   return (
     <nav aria-label="Moyai" className="fixed inset-x-0 top-4 z-20 px-4">
       <div className="scrollbar" aria-hidden />
-      <div className="glass mx-auto flex h-16 max-w-3xl items-center justify-between gap-4 rounded-full pl-7 pr-2.5">
+      <div className="glass mx-auto flex h-16 max-w-4xl items-center justify-between gap-4 rounded-full pl-7 pr-2.5">
         <Link href="/" className="font-head text-2xl font-bold tracking-tight">Moyai</Link>
         <div className="seg flex overflow-x-auto rounded-full p-1 text-[0.9rem] sm:text-base">
           {LINKS.map((l) => (
@@ -44,6 +45,7 @@ const FOOT = [
   { href: "/community", name: "Community", does: "Plain answers for residents, in English or Spanish" },
   { href: "/county", name: "County", does: "Permits, costs and promises for one county" },
   { href: "/operator", name: "Data center", does: "Send grid signals and log cooling changes" },
+  { href: "/training", name: "Training", does: "Paid courses for electricians and technicians" },
 ];
 
 export function Footer() {
@@ -56,10 +58,10 @@ export function Footer() {
               <div className="text-6xl text-ink3">舫い</div>
               <p className="mt-5 max-w-xs text-xl leading-snug">Moyai is Japanese for a mooring rope that ties boats together in a storm.</p>
             </Reveal>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               {FOOT.map((l, i) => (
                 <Reveal key={l.href} delay={i * 100}>
-                  <Link href={l.href} className="door plush flex h-full flex-col justify-between gap-10 rounded-[28px] bg-card p-6">
+                  <Link href={l.href} className="door plush flex h-full flex-col justify-between gap-6 rounded-[28px] bg-card p-6">
                     <span className="go flex h-11 w-11 items-center justify-center rounded-full text-lg" aria-hidden>→</span>
                     <span>
                       <span className="block font-head text-2xl font-semibold">{l.name}</span>
@@ -74,7 +76,6 @@ export function Footer() {
           <div className="flex flex-wrap justify-between gap-3 py-8 text-sm text-ink2">
             <span>Team Tornadoes · BESmart Innovation Challenge 2026</span>
             <a href="/prd.pdf" target="_blank" rel="noopener" className="underline-offset-4 hover:text-ink hover:underline">Product requirements (PDF)</a>
-            <span>Campus readings are simulated. Census figures are real.</span>
           </div>
         </div>
         <div aria-hidden className="wordmark grow-in select-none text-center font-head text-[clamp(7rem,31vw,27rem)] font-bold leading-[0.72] tracking-[-0.05em]">Moyai</div>
