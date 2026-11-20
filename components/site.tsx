@@ -59,7 +59,7 @@ export function Footer() {
             <div className="grid gap-4 sm:grid-cols-3">
               {FOOT.map((l, i) => (
                 <Reveal key={l.href} delay={i * 100}>
-                  <Link href={l.href} className="door flex h-full flex-col justify-between gap-10 rounded-[28px] bg-card p-6">
+                  <Link href={l.href} className="door plush flex h-full flex-col justify-between gap-10 rounded-[28px] bg-card p-6">
                     <span className="go flex h-11 w-11 items-center justify-center rounded-full text-lg" aria-hidden>→</span>
                     <span>
                       <span className="block font-head text-2xl font-semibold">{l.name}</span>
