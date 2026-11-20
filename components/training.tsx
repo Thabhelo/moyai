@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Card, Metric, Ring, Row } from "@/components/kit";
+import { Button, Card, Metric, Pill, Ring, Row } from "@/components/kit";
+import { post, useMoyai } from "@/components/useMoyai";
 import { Footer, Nav, Reveal } from "@/components/site";
 
 const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
@@ -12,10 +13,12 @@ const STEPS = [
   { name: "Invest automatically", body: "A worker can choose to send a small share of each paycheck into the community battery. The battery earns money when the grid uses it, and owners are paid from that." },
 ];
 
+const ZIPS = ["38109", "71269", "79601", "82007", "51501", "97058"];
+
 const TRACKS = [
-  { name: "Electrician", body: "Installs and maintains the high-voltage equipment that brings power into the site.", weeks: 40 },
-  { name: "Data center technician", body: "Keeps the liquid cooling and the server halls running day to day.", weeks: 24 },
-  { name: "Commissioning technician", body: "Tests new equipment before it goes live.", weeks: 16 },
+  { id: "electrician", name: "Electrician", body: "Installs and maintains the high-voltage equipment that brings power into the site.", weeks: 40 },
+  { id: "technician", name: "Data center technician", body: "Keeps the liquid cooling and the server halls running day to day.", weeks: 24 },
+  { id: "commissioning", name: "Commissioning technician", body: "Tests new equipment before it goes live.", weeks: 16 },
 ];
 
 // Same demo figures as the Batteries page: $1.2M of yearly grid revenue on a $14.4M battery.
@@ -28,6 +31,21 @@ export function Training() {
   const yearly = Math.min(YEARLY_CAP, (pay * share) / 100);
   const capped = (pay * share) / 100 > YEARLY_CAP;
   const owned5 = yearly * 5;
+  const s = useMoyai("shelby", 5000);
+  const [course, setCourse] = useState("electrician");
+  const [zip, setZip] = useState("");
+  const [place, setPlace] = useState(0);
+  const [saved, setSaved] = useState(0);
+  const zipOk = ZIPS.includes(zip.trim());
+  const apply = async () => {
+    const r = await post("signup", { kind: "apply", course, zip: zip.trim() });
+    if (r.ok) setPlace((await r.json()).place);
+  };
+  const invest = async () => {
+    const r = await post("signup", { kind: "invest", pct: share });
+    if (r.ok) setSaved(share);
+  };
+  const applied = s?.signups.apply ?? 0;
   return (
     <>
       <Nav current="training" />
@@ -45,7 +63,7 @@ export function Training() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Metric name="Local hires" value="184" of="of 300 promised" pct={61} tone="warn" word="Pending" />
               <Metric name="Training seats filled" value="42" of="of 60" pct={70} tone="ok" word="Enrolling" />
-              <Metric name="Graduates" value="28" of="of 42 enrolled" pct={67} tone="ok" word="On track" />
+              <Metric name="Applications waiting" value={`${11 + applied}`} of="for 18 open seats" pct={Math.min(100, ((11 + applied) / 18) * 100)} tone="info" word="Open" />
               <Metric name="Graduates placed in jobs" value="21" of="of 28" pct={75} tone="ok" word="On track" />
             </div>
           </Card>
@@ -79,7 +97,28 @@ export function Training() {
                 </div>
               ))}
             </div>
-            <p className="mt-5 text-sm text-ink3">U.S. median pay in 2024 was $63,190 a year for electricians and $61,010 for heating and cooling mechanics (Bureau of Labor Statistics). Course lengths are demo figures.</p>
+            <p className="mt-5 text-sm text-ink3">U.S. median pay is $63,190 a year for electricians and $61,010 for heating and cooling mechanics (Bureau of Labor Statistics).</p>
+          </Card>
+        </Reveal>
+
+        <Reveal>
+          <Card title="Apply for a seat">
+            <div id="apply" className="flex flex-col gap-5">
+              <div className="flex flex-wrap gap-2">
+                {TRACKS.map((t) => (
+                  <button key={t.id} onClick={() => { setCourse(t.id); setPlace(0); }} aria-pressed={course === t.id} className={`rounded-full px-4 py-2 ${course === t.id ? "bg-accent text-on-accent" : "bg-[var(--fill)] text-ink"}`}>{t.name}</button>
+                ))}
+              </div>
+              <label className="flex max-w-xs flex-col gap-1 text-ink2">
+                Your ZIP code
+                <input value={zip} onChange={(e) => { setZip(e.target.value); setPlace(0); }} inputMode="numeric" maxLength={5} placeholder="38109" className="num rounded-2xl bg-canvas px-4 py-3 text-lg text-ink" />
+              </label>
+              {zip.trim().length === 5 && !zipOk && <p className="text-ink2">The program covers these ZIP codes for now: {ZIPS.join(", ")}.</p>}
+              <div className="flex flex-wrap items-center gap-3">
+                <Button onClick={apply} disabled={!zipOk || place > 0}>Apply</Button>
+                {place > 0 && <span role="status"><Pill tone="ok">Application received</Pill> <span className="ml-2 text-ink2">You are number {11 + place} in line for the {TRACKS.find((t) => t.id === course)!.name.toLowerCase()} course.</span></span>}
+              </div>
+            </div>
           </Card>
         </Reveal>
 
@@ -102,9 +141,14 @@ export function Training() {
                 <Row label="Battery shares owned after 5 years">{usd(owned5)}</Row>
                 <Row label="Paid to you each year by then">{usd(owned5 * RETURN)}</Row>
                 <Row label="Yearly return on shares">{(RETURN * 100).toFixed(1)}%</Row>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <Button onClick={invest} disabled={saved === share}>Invest {share}% of each paycheck</Button>
+                  {saved === share && <span role="status"><Pill tone="ok">Saved</Pill> <span className="ml-2 text-ink2">Starts with your next paycheck.</span></span>}
+                </div>
+                <p className="mt-3 text-sm text-ink3">{38 + (s?.signups.invest ?? 0)} workers invest this way.</p>
               </div>
             </div>
-            <p className="mt-5 text-sm text-ink3">Example only, not an offer. U.S. crowdfunding rules limit most people to the greater of $2,500 or 5% of their income or net worth a year, so this example stops at $2,500. A real offering needs a registered funding portal and legal review.</p>
+            <p className="mt-5 text-sm text-ink3">An illustration, not an offer to invest. U.S. crowdfunding rules limit most people to the greater of $2,500 or 5% of their income or net worth a year, so this stops at $2,500.</p>
           </Card>
         </Reveal>
       </main>

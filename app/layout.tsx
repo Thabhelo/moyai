@@ -3,10 +3,20 @@ import "./globals.css";
 
 
 export const metadata: Metadata = {
-  title: "Moyai",
+  metadataBase: new URL("https://moyai.fyi"),
+  title: { default: "Moyai", template: "%s · Moyai" },
   description: "Data center accountability for communities that host them.",
+  openGraph: {
+    title: "Moyai",
+    description: "Data center accountability for communities that host them.",
+    url: "https://moyai.fyi",
+    siteName: "Moyai",
+    type: "website",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Moyai, by Team Tornadoes. A power pylon against an orange evening sky." }],
+  },
+  twitter: { card: "summary_large_image", title: "Moyai", description: "Data center accountability for communities that host them.", images: ["/og.jpg"] },
 };
-export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fbfbfa" }, { media: "(prefers-color-scheme: dark)", color: "#0b0b0b" }] };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

@@ -7,6 +7,8 @@ type Env = { CAMPUS: DurableObjectNamespace<Campus>; ASSETS: Fetcher };
 const COUNTIES = ["shelby", "richland", "taylor", "laramie", "pottawattamie", "wasco"];
 const KINDS = ["noise", "exhaust", "water", "traffic", "power"];
 const RECS = ["setpoint", "economizer", "precool", "coils", "effluent"];
+const COURSES = ["electrician", "technician", "commissioning"];
+const ZIPS = ["38109", "71269", "79601", "82007", "51501", "97058"];
 
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { "cache-control": "no-store" } });
 
@@ -19,6 +21,7 @@ export class Campus extends DurableObject<Env> {
       "CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, county TEXT NOT NULL, kind TEXT NOT NULL, note TEXT NOT NULL, ts INTEGER NOT NULL)",
     );
     ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS applied (rec TEXT PRIMARY KEY, ts INTEGER NOT NULL)");
+    ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS signups (id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL, detail TEXT NOT NULL, ts INTEGER NOT NULL)");
   }
 
   async fetch(req: Request) {
@@ -40,6 +43,10 @@ export class Campus extends DurableObject<Env> {
         brokenAt: verifyChain(s.ledger),
         reports: sql.exec("SELECT id, kind, note, ts FROM reports WHERE county = ? ORDER BY id DESC LIMIT 20", county).toArray(),
         applied: sql.exec("SELECT rec, ts FROM applied").toArray(),
+        signups: {
+          apply: sql.exec("SELECT COUNT(*) AS n FROM signups WHERE kind = 'apply'").one().n,
+          invest: sql.exec("SELECT COUNT(*) AS n FROM signups WHERE kind = 'invest'").one().n,
+        },
       });
     }
     if (path === "event" && post) {
@@ -64,6 +71,17 @@ export class Campus extends DurableObject<Env> {
       sql.exec("INSERT OR IGNORE INTO applied (rec, ts) VALUES (?, ?)", body.rec, Date.now());
       return json({ ok: true });
     }
+    if (path === "signup" && post) {
+      // A training application (course and ZIP code) or a paycheck share to invest (1 to 10 percent).
+      const ok =
+        body.kind === "apply"
+          ? COURSES.includes(body.course as string) && ZIPS.includes(body.zip as string)
+          : body.kind === "invest" && Number.isInteger(body.pct) && (body.pct as number) >= 1 && (body.pct as number) <= 10;
+      if (!ok) return json({ error: "check the course, ZIP code or share" }, 400);
+      const detail = body.kind === "apply" ? `${body.course}:${body.zip}` : `${body.pct}`;
+      sql.exec("INSERT INTO signups (kind, detail, ts) VALUES (?, ?, ?)", body.kind, detail, Date.now());
+      return json({ place: sql.exec("SELECT COUNT(*) AS n FROM signups WHERE kind = ?", body.kind).one().n });
+    }
     if (path === "tamper" && post) {
       // Demo only: quietly edit an old meter reading so the audit log shows it was changed.
       const reading = tick().ledger.findLast((e) => e.type === "reading");
@@ -75,6 +93,7 @@ export class Campus extends DurableObject<Env> {
       reset();
       sql.exec("DELETE FROM reports");
       sql.exec("DELETE FROM applied");
+      sql.exec("DELETE FROM signups");
       return json({ ok: true });
     }
     return json({ error: "not found" }, 404);

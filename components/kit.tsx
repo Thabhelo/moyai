@@ -3,13 +3,12 @@ import { LEVEL_WORD, type Level } from "@/lib/data";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
 
-export function Card({ title, demo = true, children, className = "" }: { title?: string; demo?: boolean; children: ReactNode; className?: string }) {
+export function Card({ title, children, className = "" }: { title?: string; demo?: boolean; children: ReactNode; className?: string }) {
   return (
     <section className={`plush rounded-[28px] bg-card p-6 sm:p-8 ${className}`}>
       {title && (
         <div className="mb-5 flex items-baseline justify-between gap-3">
           <h2 className="text-[15px] font-medium">{title}</h2>
-          {demo && <span className="shrink-0 text-xs text-ink3">Demo data</span>}
         </div>
       )}
       {children}

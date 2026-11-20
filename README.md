@@ -38,6 +38,7 @@ No sign-in. Each audience has its own address, and every page reads the same liv
 | `/county` | County government | Overview, Live readings, Who pays, Grid relief, Cooling, Batteries, Local jobs, Alerts |
 | `/operator` | Data center and grid operations | Operations, Grid relief (sends the grid signal), Cooling (marks changes applied), Live readings, Our promises |
 | `/training` | Everyone | How local people are trained as electricians and technicians, and the paycheck auto-invest example |
+| `/certificate?id=1` | Everyone | The signed result of one grid signal, with a button that checks the Ed25519 signature in the browser |
 
 Census figures in `lib/data.ts` are real (U.S. Census ACS 2020-2024). Every other number is labeled "Demo data". The look is Plush UI (github.com/dominikmartn/plush-ui, MIT): its tokens, Open Runde font, and its real progress ring, progress bar and tabs, installed in `components/ui/` through the shadcn tool. On top sit a WebGL colour field (`components/shader.tsx`), liquid-glass surfaces and a pointer glow, all hand-written.
 
@@ -50,6 +51,7 @@ Census figures in `lib/data.ts` are real (U.S. Census ACS 2020-2024). Every othe
 | GET | `/api/certificate/:id` | Signed certificate for a finished event |
 | POST | `/api/report` | Saves a resident report `{ county, kind, note }` |
 | POST | `/api/apply` | Marks a cooling recommendation applied `{ rec }` |
+| POST | `/api/signup` | Saves a training application `{ kind: "apply", course, zip }` or a paycheck share `{ kind: "invest", pct }` |
 | POST | `/api/tamper` | Demo: edits an old reading so the log shows it as broken |
 | POST | `/api/reset` | Restarts the simulation and clears reports |
 

@@ -1,11 +1,15 @@
 "use client";
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { Inter_Tight } from "next/font/google";
 import { Footer, Nav, Num, Reveal, Rope } from "@/components/site";
 import { Shader } from "@/components/shader";
 import { Ring } from "@/components/kit";
 import { useMoyai } from "@/components/useMoyai";
 import { facts } from "@/components/workspace";
+
+// The homepage typeface: a tight geometric sans close to the wordmark in the hero photo.
+const tight = Inter_Tight({ variable: "--font-tight", subsets: ["latin"], display: "swap" });
 
 const stroke = { fill: "none", stroke: "var(--ink)", strokeWidth: 3, strokeLinecap: "round" as const };
 
@@ -39,18 +43,23 @@ export default function Landing() {
   return (
     <>
       <Nav />
-      <main className="overflow-x-clip">
-        <section className="relative flex min-h-svh flex-col items-center justify-center text-center">
-          <Shader className="fade absolute inset-0 -z-10 h-full w-full" />
-          <div className="hero-out w-full">
-            <h1 aria-label="Moyai" className="font-head text-[clamp(6rem,27vw,23rem)] font-bold leading-[0.9] tracking-[-0.05em]">
-              {"Moyai".split("").map((ch, i) => (
-                <span key={i} className="mask" aria-hidden>
-                  <span className="rise" style={{ animationDelay: `${i * 80}ms` }}>{ch}</span>
-                </span>
-              ))}
-            </h1>
-            <Rope className="fade my-[1vh] h-[clamp(48px,7vw,84px)] w-full" />
+      <main className={`home ${tight.variable} overflow-x-clip`}>
+        <section className="text-center">
+          <div className="hero-photo relative mx-auto aspect-[2400/1339] max-h-[94svh] w-full overflow-hidden">
+            <img
+              src="/hero.webp"
+              srcSet="/hero-1200.webp 1200w, /hero.webp 2400w"
+              sizes="100vw"
+              width={2400}
+              height={1339}
+              fetchPriority="high"
+              alt="moyai, Team Tornadoes. A power pylon and its lines against an orange evening sky."
+              className="hero-img h-full w-full object-cover"
+            />
+          </div>
+          <h1 className="sr-only">Moyai</h1>
+          <div className="w-full">
+            <Rope className="fade my-[2vh] h-[clamp(40px,6vw,72px)] w-full" />
             <p className="fade px-6 text-2xl text-ink2 sm:text-3xl" style={{ animationDelay: "0.5s" }}>
               Data center accountability <span className="text-ink">for communities that host them.</span>
             </p>
@@ -58,7 +67,7 @@ export default function Landing() {
               <Link href="/county" className="cta rounded-full bg-ink px-6 py-3 text-lg font-semibold text-canvas">See Shelby County live</Link>
               <p className="flex items-center gap-2 text-sm text-ink2">
                 <span className="h-2 w-2 rounded-full bg-hot" aria-hidden />
-                {f ? <>Drawing {f.power.toFixed(1)} MW right now, demo data</> : "Connecting to the campus"}
+                {f ? <>Drawing {f.power.toFixed(1)} MW right now</> : "Connecting to the campus"}
               </p>
             </div>
           </div>

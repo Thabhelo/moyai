@@ -13,6 +13,7 @@ export type MoyaiState = {
   brokenAt: number | null;
   reports: Report[];
   applied: { rec: string; ts: number }[];
+  signups: { apply: number; invest: number };
 };
 
 // Every screen reads the same server state, so an action on one device shows on all of them.

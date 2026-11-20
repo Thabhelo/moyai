@@ -79,7 +79,7 @@ export function Workspace({ role }: { role: Exclude<Role, "resident"> }) {
             <h1 className="text-3xl font-semibold sm:text-5xl">{county.name}</h1>
           </div>
           <label className="flex items-center gap-2 text-sm text-ink3">
-            Switch (demo only)
+            County
             <select value={county.id} onChange={(e) => setCounty(e.target.value)} className="plush rounded-full bg-card px-3 py-1.5 text-ink">
               {COUNTIES.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -99,7 +99,7 @@ export function Workspace({ role }: { role: Exclude<Role, "resident"> }) {
           <Loading />
         ) : (
           <main key={page} className="enter flex flex-col gap-6">
-            {page === "overview" && (role === "operator" ? <Operations s={s} /> : <Overview s={s} county={county} />)}
+            {page === "overview" && (role === "operator" ? <Operations s={s} /> : <Overview s={s} county={county} go={setPage} />)}
             {page === "live" && <Live s={s} />}
             {page === "cooling" && <Cooling s={s} canApply={role === "operator"} />}
             {page === "grid" && <Grid s={s} canSend={role === "operator"} />}
@@ -160,7 +160,7 @@ function Operations({ s }: { s: MoyaiState }) {
   );
 }
 
-function Overview({ s, county }: { s: MoyaiState; county: County }) {
+function Overview({ s, county, go }: { s: MoyaiState; county: County; go: (p: Page) => void }) {
   const f = facts(s);
   const lv = (v: number, max: number) => ({ pct: (v / max) * 100, tone: levelOf(v, max), word: LEVEL_WORD[levelOf(v, max)] });
   return (
@@ -176,6 +176,29 @@ function Overview({ s, county }: { s: MoyaiState; county: County }) {
           <Metric name="Promises kept" value="4" of="of 6" pct={67} tone="warn" word="1 at risk" />
           <Metric name="Cost on household bills" value="$0" pct={0} tone="ok" word="Protected" />
         </div>
+      </Card>
+      <Card title="What the county can do next">
+        <ul>
+          {(() => {
+            const open = RECS.filter((x) => !f.applied.some((a) => a.id === x.id));
+            const mw = open.reduce((a, x) => a + x.mw, 0);
+            const gal = open.reduce((a, x) => a + x.gal, 0);
+            const items: [string, string, Page, string][] = [
+              ["Use less power and water", open.length ? `${open.length} cooling changes are waiting on the operator. Together they would save about ${n1(mw)} MW and ${n0(gal)} gallons a day.` : "The operator has applied every recommended cooling change.", "cooling", "See the cooling changes"],
+              ["Get new capacity connected sooner", `The campus has answered ${f.met} of ${f.total} grid signals in time. The utility can use that record to approve the next stage of power without waiting for new lines.`, "grid", "See the signal record"],
+              ["Keep residents unaffected", `Household bills carry $0 of the upgrade costs. Backup generators have used ${n0(f.genHours)} of 100 permitted hours, so ask the operator to cover the next peaks with the battery.`, "pays", "See who pays"],
+            ];
+            return items.map(([title, body, page, label]) => (
+              <li key={title} className="flex flex-wrap items-center justify-between gap-4 border-t border-line py-4 first:border-0 first:pt-0 last:pb-0">
+                <div className="min-w-0 flex-1 basis-72">
+                  <div className="text-lg font-semibold">{title}</div>
+                  <div className="text-ink2">{body}</div>
+                </div>
+                <Button quiet onClick={() => go(page)}>{label}</Button>
+              </li>
+            ));
+          })()}
+        </ul>
       </Card>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Today in plain numbers">
@@ -196,7 +219,7 @@ function Overview({ s, county }: { s: MoyaiState; county: County }) {
             <span className="num">{n0(county.pop)}</span> people in ZIP <span className="num">{county.zip}</span>
             {county.zipInferred && " (ZIP inferred from the site location)"}. {county.race.map(([g, p]) => `${p}% ${g}`).join(", ")}.
           </p>
-          <p className="mt-2 text-xs text-ink3">U.S. Census ACS 2020-2024. The dark tick marks the U.S. figure. Reported operator: {county.operator}. Readings in this app come from a simulated host campus, not from that company.</p>
+          <p className="mt-2 text-xs text-ink3">Source: U.S. Census American Community Survey 2020-2024. The dark tick marks the U.S. figure.</p>
         </Card>
       </div>
     </>
@@ -360,7 +383,7 @@ function LogRow({ date, reason, asked, delivered, ramp, result, cert }: { date: 
       <td className="num pr-3">{ramp == null ? "…" : `${ramp} min`}</td>
       <td>
         <Pill tone={result === "Met" ? "ok" : result === "Short" ? "bad" : "info"}>{result === "Running" ? "Running" : `Verified ${result}`}</Pill>
-        {cert && <a href={`/api/certificate/${cert}`} target="_blank" className="ml-2 text-accent underline-offset-4 hover:underline">Signed proof</a>}
+        {cert && <a href={`/certificate?id=${cert}`} className="ml-2 underline underline-offset-4">Signed proof</a>}
       </td>
     </tr>
   );
@@ -441,7 +464,7 @@ function Batteries({ s, county }: { s: MoyaiState; county: County }) {
             <Row label="Neighbors who can join at this amount">{n0(pool / invest)}</Row>
           </div>
         </div>
-        <p className="mt-3 text-xs text-ink3">Example only, not an offer. U.S. crowdfunding rules cap a raise at $5 million a year and limit most people to the greater of $2,500 or 5% of their income or net worth. A real offering needs a registered funding portal and legal review.</p>
+        <p className="mt-3 text-xs text-ink3">An illustration, not an offer to invest. U.S. crowdfunding rules cap a raise at $5 million a year and limit most people to the greater of $2,500 or 5% of their income or net worth.</p>
       </Card>
     </>
   );
@@ -495,8 +518,8 @@ function Alerts({ s }: { s: MoyaiState }) {
             <span className="ml-2 text-sm text-ink2"><span className="num">{s.ledgerLength}</span> entries. Each entry carries a fingerprint of the one before it, so an edited reading shows up at once.</span>
           </div>
           <div className="flex gap-2">
-            <Button quiet onClick={() => post("tamper")}>Demo: edit an old reading</Button>
-            <Button quiet onClick={() => post("reset")}>Reset demo</Button>
+            <Button quiet onClick={() => post("tamper")}>Test it: edit an old reading</Button>
+            <Button quiet onClick={() => post("reset")}>Start over</Button>
           </div>
         </div>
         <ol className="num mt-3 text-xs text-ink2">
@@ -525,9 +548,10 @@ const COPY = {
     bill: "Your power bill", billBody: "$0 of the grid upgrade costs were added to household rates. This protection covers everyone.",
     water: "Water saved this month", waterBody: (g: string) => `${g} gallons, from changes to how the buildings are cooled.`,
     battery: "Community battery", batteryBody: "It last helped the grid on Nov 12 and has earned the community $412,000 this year.",
-    jobs: "Local jobs", jobsBody: "184 neighbors hired so far. Paid training has 60 open seats. Ask at your community college.",
+    jobs: "Local jobs", jobsBody: "184 neighbors hired so far. Paid training has 60 seats.", apply: "Apply for training",
     report: "Report a problem", note: "Add a note (optional)", send: "Send report", sent: "Thank you. The county can see your report now.",
-    lang: "Español", big: "Larger text", demo: "Demo data",
+    lang: "Español", big: "Larger text",
+    work: "Want a job at this data center?", workBody: "Paid training for electricians and technicians. See the courses and apply.",
   },
   es: {
     q: "¿El centro de datos cerca de mí cumple las reglas?", yes: "Sí", no: "No del todo",
@@ -536,9 +560,10 @@ const COPY = {
     bill: "Su factura de luz", billBody: "$0 de los costos de mejora de la red se sumaron a las tarifas de los hogares. Esta protección cubre a todos.",
     water: "Agua ahorrada este mes", waterBody: (g: string) => `${g} galones, gracias a cambios en la forma de enfriar los edificios.`,
     battery: "Batería comunitaria", batteryBody: "Ayudó a la red por última vez el 12 de noviembre y ha ganado $412,000 para la comunidad este año.",
-    jobs: "Empleos locales", jobsBody: "184 vecinos contratados hasta ahora. Hay 60 cupos de capacitación pagada. Pregunte en su colegio comunitario.",
+    jobs: "Empleos locales", jobsBody: "184 vecinos contratados hasta ahora. Hay 60 cupos de capacitación pagada.", apply: "Solicitar capacitación",
     report: "Reportar un problema", note: "Agregue una nota (opcional)", send: "Enviar reporte", sent: "Gracias. El condado ya puede ver su reporte.",
-    lang: "English", big: "Texto más grande", demo: "Datos de demostración",
+    lang: "English", big: "Texto más grande",
+    work: "¿Quiere un empleo en este centro de datos?", workBody: "Capacitación pagada para electricistas y técnicos. Vea los cursos y solicite.",
   },
 };
 
@@ -569,12 +594,19 @@ function Resident({ s, county }: { s: MoyaiState; county: County }) {
         <div className="my-1 font-head text-5xl font-semibold" style={{ color: ok ? "var(--ok)" : "var(--warn)" }}>{ok ? t.yes : t.no}</div>
         <p>{ok ? t.yesWhy : t.noWhy}</p>
         <p className="mt-3 text-ink2">{t.today(n0((f.power * 1000) / 1.2), n0((f.water * 1e6) / 82))}</p>
-        <p className="mt-2 text-xs text-ink3">{t.demo}</p>
       </Card>
+      <a href="/training" className="door plush flex items-center justify-between gap-4 rounded-[28px] bg-accent p-6 text-on-accent sm:p-8">
+        <span>
+          <span className="block font-head text-2xl font-semibold">{t.work}</span>
+          <span className="block opacity-75">{t.workBody}</span>
+        </span>
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-on-accent text-xl text-accent" aria-hidden>→</span>
+      </a>
       {([[t.bill, t.billBody], [t.water, t.waterBody(n0(118000 + f.applied.reduce((a, r) => a + r.gal, 0)))], [t.battery, t.batteryBody], [t.jobs, t.jobsBody]] as const).map(([title, body]) => (
         <Card key={title}>
           <h2 className="font-medium">{title}</h2>
           <p className="text-ink2">{body}</p>
+          {title === t.jobs && <a href="/training" className="mt-2 inline-block underline underline-offset-4">{t.apply}</a>}
         </Card>
       ))}
       <Card>
