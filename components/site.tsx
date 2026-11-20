@@ -73,6 +73,7 @@ export function Footer() {
           <Rope className="mt-16 h-14 w-full" />
           <div className="flex flex-wrap justify-between gap-3 py-8 text-sm text-ink2">
             <span>Team Tornadoes · BESmart Innovation Challenge 2026</span>
+            <a href="/prd.pdf" target="_blank" rel="noopener" className="underline-offset-4 hover:text-ink hover:underline">Product requirements (PDF)</a>
             <span>Campus readings are simulated. Census figures are real.</span>
           </div>
         </div>
