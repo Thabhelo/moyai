@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { append, newSigner, signJson, verifyChain, verifyJson, type LedgerEntry } from "./ledger";
-import { baselineMW, verifyCurtailment, type Reading } from "./baseline";
+import { baselineMW, gridWaterGal, verifyCurtailment, type Reading } from "./baseline";
 import { certificate, reset, startEvent, tick } from "./sim";
 
 describe("ledger", () => {
@@ -50,6 +50,29 @@ describe("simulated campus", () => {
     expect(s.history.every((t) => t.potableWaterGPM === 0)).toBe(true);
     expect(verifyChain(s.ledger)).toBeNull();
     const cert = certificate(ev.id)!;
-    expect(cert.body.ledgerHead).toBe(s.ledger.at(-1)!.hash);
+    expect(cert.body.ledgerHead).toBe(s.ledger.findLast((e) => e.type === "verification")!.hash);
+    expect(cert.body.logIntact).toBe(true);
+
+    // battery energy is shifted, not avoided: water counts paused compute only
+    const computeMWh = s.history.filter((t) => t.min >= ev.startMin && t.min < ev.endMin).reduce((x, t) => x + t.computeShedMW, 0) / 60;
+    expect(ev.verification!.gridWaterAvoidedGal).toBeCloseTo(gridWaterGal(computeMWh));
+    expect(computeMWh).toBeLessThan(ev.verification!.shedMWh);
+
+    // later ticks don't change the certificate, and tampering shows on it
+    s.startedAt -= 20_000;
+    tick();
+    s.ledger[1].payload.facilityMW = 0;
+    const later = certificate(ev.id)!;
+    expect(later.body.ledgerHead).toBe(cert.body.ledgerHead);
+    expect(later.body.logIntact).toBe(false);
+  });
+
+  it("rejects inputs that would lock or stretch an event", () => {
+    reset();
+    expect(() => startEvent(0.25, 2.5)).toThrow(RangeError);
+    expect(() => startEvent(0.25, "10" as unknown as number)).toThrow(RangeError);
+    expect(() => startEvent("0.25" as unknown as number, 10)).toThrow(RangeError);
+    const ok = startEvent(0.25, 10);
+    expect(ok.endMin - ok.startMin).toBe(10);
   });
 });

@@ -1,8 +1,8 @@
-import { append, newSigner, signJson, type LedgerEntry } from "./ledger";
-import { baselineMW, verifyCurtailment, type Reading, type Verification } from "./baseline";
+import { append, newSigner, signJson, verifyChain, type LedgerEntry } from "./ledger";
+import { baselineMW, gridWaterGal, verifyCurtailment, type Reading, type Verification } from "./baseline";
 
 // A simulated 100 MW AI campus with closed-loop direct-to-chip cooling. 1 real second = 1 simulated minute.
-export const SIM_MIN_PER_SEC = 1;
+const SIM_MIN_PER_SEC = 1;
 const IT_MW = 80; // 80% of 100 MW IT capacity
 const PUE = 1.12; // liquid cooling, closed loop
 const BATTERY_MW = 12;
@@ -14,7 +14,7 @@ const SIM_EPOCH = Date.parse("2026-08-14T12:00:00-04:00"); // a Stage 2 drought 
 export type Telemetry = Reading & {
   ts: string;
   baselineMW: number;
-  batteryMW: number;
+  batteryMW: number; // + discharging, - charging
   batterySoc: number; // 0..1
   computeShedMW: number;
   supplyC: number;
@@ -23,7 +23,16 @@ export type Telemetry = Reading & {
   potableWaterGPM: number;
 };
 
-export type GridEvent = { id: number; startMin: number; endMin: number; targetPct: number; baselineMW: number; verification?: Verification };
+export type GridEvent = {
+  id: number;
+  startMin: number;
+  endMin: number;
+  targetPct: number;
+  baselineMW: number;
+  // battery energy is only shifted (it recharges from the grid later), so water counts paused compute only
+  verification?: Verification & { gridWaterAvoidedGal: number };
+  ledgerHead?: string; // hash of the verification entry, so the certificate is pinned to the log at event end
+};
 
 type State = {
   startedAt: number;
@@ -60,10 +69,11 @@ function step(s: State, min: number) {
     shed = Math.max(0, base - targetMW) * Math.min(1, (min - ev.startMin + 1) / RAMP_MIN);
     batteryMW = Math.min(shed, BATTERY_MW, s.soc * BATTERY_MWH * 60);
     s.soc = Math.max(0, s.soc - batteryMW / 60 / BATTERY_MWH);
-  } else {
-    s.soc = Math.min(1, s.soc + BATTERY_MW / 4 / 60 / BATTERY_MWH); // slow recharge off-event
+  } else if (s.soc < 1) {
+    batteryMW = -Math.min(BATTERY_MW / 4, (1 - s.soc) * BATTERY_MWH * 60); // slow recharge off-event, drawn from the grid
+    s.soc = Math.min(1, s.soc - batteryMW / 60 / BATTERY_MWH);
   }
-  const facilityMW = base - shed;
+  const facilityMW = base - shed - Math.min(0, batteryMW);
   const heat = facilityMW / (IT_MW * PUE);
   const t: Telemetry = {
     min,
@@ -72,7 +82,7 @@ function step(s: State, min: number) {
     baselineMW: base,
     batteryMW,
     batterySoc: s.soc,
-    computeShedMW: shed - batteryMW,
+    computeShedMW: Math.max(0, shed - batteryMW),
     supplyC: 32,
     returnC: 32 + 10 * heat,
     flowGPM: 9000 * heat,
@@ -85,9 +95,10 @@ function step(s: State, min: number) {
 }
 
 function finish(s: State, ev: GridEvent) {
-  ev.verification = verifyCurtailment(s.history, ev);
+  const computeMWh = s.history.filter((t) => t.min >= ev.startMin).reduce((sum, t) => sum + t.computeShedMW, 0) / 60;
+  ev.verification = { ...verifyCurtailment(s.history, ev), gridWaterAvoidedGal: gridWaterGal(computeMWh) };
   append(s.ledger, tsOf(ev.endMin), "event_end", { eventId: ev.id });
-  append(s.ledger, tsOf(ev.endMin), "verification", { eventId: ev.id, ...ev.verification });
+  ev.ledgerHead = append(s.ledger, tsOf(ev.endMin), "verification", { eventId: ev.id, ...ev.verification }).hash;
 }
 
 /** Advance the simulation to the current wall-clock time. */
@@ -99,6 +110,9 @@ export function tick() {
 }
 
 export function startEvent(targetPct = 0.25, durationMin = 120) {
+  // a non-integer duration would never hit the end minute and lock the sim; a string would concatenate
+  if (typeof targetPct !== "number" || !(targetPct > 0 && targetPct < 1) || !Number.isInteger(durationMin) || durationMin < 5 || durationMin > 600)
+    throw new RangeError("targetPct must be a number between 0 and 1, durationMin a whole number from 5 to 600");
   const s = tick();
   if (s.events.some((e) => !e.verification)) throw new Error("an event is already running");
   const startMin = s.min + 1;
@@ -111,14 +125,15 @@ export function startEvent(targetPct = 0.25, durationMin = 120) {
 export function certificate(eventId: number) {
   const s = tick();
   const ev = s.events.find((e) => e.id === eventId);
-  if (!ev?.verification) return null;
+  if (!ev?.verification || !ev.ledgerHead) return null;
   const body = {
     facility: "Simulated 100 MW AI campus, Mecklenburg County, NC",
     eventId,
     window: { start: tsOf(ev.startMin), end: tsOf(ev.endMin) },
     targetPct: ev.targetPct,
     ...ev.verification,
-    ledgerHead: s.ledger.at(-1)!.hash,
+    ledgerHead: ev.ledgerHead,
+    logIntact: verifyChain(s.ledger) === null,
   };
   return {
     body,

@@ -19,8 +19,9 @@ export type Verification = {
   rampMinutes: number | null; // minutes until load first reached the target
   heldTarget: boolean; // stayed at or under target after reaching it
   compliant: boolean;
-  gridWaterAvoidedGal: number;
 };
+
+export const gridWaterGal = (mwh: number) => (mwh * 1000 * GRID_WATER_L_PER_KWH) / L_PER_GAL;
 
 const TOLERANCE = 0.01; // 1% meter tolerance
 
@@ -45,6 +46,5 @@ export function verifyCurtailment(
     rampMinutes,
     heldTarget,
     compliant: rampMinutes !== null && rampMinutes <= dispatchWindowMin && heldTarget,
-    gridWaterAvoidedGal: (shedMWh * 1000 * GRID_WATER_L_PER_KWH) / L_PER_GAL,
   };
 }
