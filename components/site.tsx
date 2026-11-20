@@ -41,42 +41,27 @@ export function Nav({ current }: { current?: string }) {
   );
 }
 
-const FOOT = [
-  { href: "/community", name: "Community", does: "Plain answers for residents, in English or Spanish" },
-  { href: "/county", name: "County", does: "Permits, costs and promises for one county" },
-  { href: "/operator", name: "Data center", does: "Send grid signals and log cooling changes" },
-  { href: "/training", name: "Training", does: "Paid courses for electricians and technicians" },
-];
-
 export function Footer() {
   return (
     <footer className="px-3 pb-3 sm:px-5 sm:pb-5">
       <div className="onink overflow-hidden rounded-[40px]">
-        <div className="mx-auto max-w-5xl px-8 pt-16 sm:px-14 sm:pt-24">
-          <div className="grid gap-14 md:grid-cols-[1.1fr_2fr]">
+        <div className="mx-auto max-w-5xl px-8 pt-16 sm:px-14 sm:pt-20">
+          <div className="flex flex-wrap items-start justify-between gap-10">
             <Reveal>
-              <div className="text-6xl text-ink3">舫い</div>
-              <p className="mt-5 max-w-xs text-xl leading-snug">Moyai is Japanese for a mooring rope that ties boats together in a storm.</p>
+              <div className="text-5xl text-ink3">舫い</div>
+              <p className="mt-4 max-w-xs text-lg leading-snug">Moyai is Japanese for a mooring rope that ties boats together in a storm.</p>
             </Reveal>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {FOOT.map((l, i) => (
-                <Reveal key={l.href} delay={i * 100}>
-                  <Link href={l.href} className="door plush flex h-full flex-col justify-between gap-6 rounded-[28px] bg-card p-6">
-                    <span className="go flex h-11 w-11 items-center justify-center rounded-full text-lg" aria-hidden>→</span>
-                    <span>
-                      <span className="block font-head text-2xl font-semibold">{l.name}</span>
-                      <span className="mt-1 block text-ink2">{l.does}</span>
-                    </span>
-                  </Link>
-                </Reveal>
-              ))}
-            </div>
+            <Reveal delay={120}>
+              <ul className="grid grid-cols-2 gap-x-12 gap-y-3 text-lg">
+                {LINKS.map((l) => (
+                  <li key={l.id}><Link href={l.href} className="ulink">{l.name}</Link></li>
+                ))}
+                <li><a href="/prd.pdf" target="_blank" rel="noopener" className="ulink">Product requirements</a></li>
+              </ul>
+            </Reveal>
           </div>
-          <Rope className="mt-16 h-14 w-full" />
-          <div className="flex flex-wrap justify-between gap-3 py-8 text-sm text-ink2">
-            <span>Team Tornadoes · BESmart Innovation Challenge 2026</span>
-            <a href="/prd.pdf" target="_blank" rel="noopener" className="underline-offset-4 hover:text-ink hover:underline">Product requirements (PDF)</a>
-          </div>
+          <Rope className="mt-14 h-12 w-full" />
+          <p className="py-6 text-sm text-ink2">Team Tornadoes · BESmart Innovation Challenge 2026</p>
         </div>
         <div aria-hidden className="wordmark grow-in select-none text-center font-head text-[clamp(7rem,31vw,27rem)] font-bold leading-[0.72] tracking-[-0.05em]">Moyai</div>
       </div>

@@ -454,6 +454,46 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 @keyframes rise { from { transform: translateY(105%); } }
 .fade { animation: fade 1.2s ease-out both; }
 @keyframes fade { from { opacity: 0; } }
+/* ---- Subtle motion used across the site ---- */
+/* Cards rise a little and their shadow deepens under the pointer. */
+.plush { transition: translate 0.45s var(--spring), box-shadow 0.35s ease-out, background-color 0.25s ease-out; }
+@media (hover: hover) {
+  .plush:hover { translate: 0 -3px; box-shadow: 0 2px 4px rgba(20, 20, 20, 0.05), 0 18px 44px rgba(20, 20, 20, 0.09); }
+  select.plush:hover, .glass.plush:hover { translate: 0 0; }
+}
+/* Links draw their underline from the left. */
+.ulink { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1.5px no-repeat; padding-bottom: 2px; transition: background-size 0.4s var(--ease), color 0.2s; color: var(--ink2); }
+.ulink:hover, .ulink:focus-visible { background-size: 100% 1.5px; color: var(--ink); }
+/* Buttons lift slightly before they are pressed. */
+@media (hover: hover) { button:hover:not(:disabled) { translate: 0 -1px; } }
+/* Workspace cards arrive one after another. */
+main.enter > * { animation: enter 0.6s var(--ease) both; }
+main.enter > *:nth-child(2) { animation-delay: 70ms; }
+main.enter > *:nth-child(3) { animation-delay: 140ms; }
+main.enter > *:nth-child(4) { animation-delay: 210ms; }
+main.enter > *:nth-child(n + 5) { animation-delay: 280ms; }
+/* Progress bars and rings sweep in when their card appears. */
+[data-slot="progress-indicator"] { animation: sweep 1.1s var(--ease) both; transform-origin: left; }
+@keyframes sweep { from { transform: scaleX(0); } }
+[data-slot="progress-ring"] svg { animation: ring-in 0.9s var(--ease) both; }
+@keyframes ring-in { from { opacity: 0; rotate: -150deg; } }
+/* Tied to scroll, where the browser supports it. */
+@supports (animation-timeline: scroll()) {
+  /* The navigation pill tightens once the page moves. */
+  nav .glass { animation: nav-tight linear both; animation-timeline: scroll(root); animation-range: 0 240px; }
+  @keyframes nav-tight { to { scale: 0.94; background: color-mix(in srgb, var(--card) 90%, transparent); box-shadow: inset 0 1px 0 var(--glass-shine), 0 16px 48px rgba(20, 20, 20, 0.14); } }
+  /* The hero photo settles into a rounded card as you scroll past it. */
+  .hero-photo { animation: hero-park linear both; animation-timeline: scroll(root); animation-range: 0 90vh; }
+  @keyframes hero-park { to { scale: 0.9; border-radius: 48px; opacity: 0.55; } }
+  /* Cards fade up as they enter the screen and ease back as they leave the top. */
+  .home .plush, main .plush { animation: card-in linear both, card-out linear both; animation-timeline: view(), view(); animation-range: entry 0% entry 70%, exit 40% exit 100%; }
+  @keyframes card-in { from { opacity: 0.25; scale: 0.96; } }
+  @keyframes card-out { to { opacity: 0.4; scale: 0.97; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plush, main.enter > *, [data-slot="progress-indicator"], [data-slot="progress-ring"] svg, nav .glass, .hero-photo, .home .plush, main .plush { animation: none !important; translate: none !important; }
+  .ulink { transition: none; }
+}
 /* Homepage: the hero photo eases in from a soft zoom, then drifts very slowly. */
 .home, .home h1, .home h2, .home .font-head { font-family: var(--font-tight), system-ui, sans-serif; }
 .home h2, .home .font-head { font-weight: 500; letter-spacing: -0.035em; }
