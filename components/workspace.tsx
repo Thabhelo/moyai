@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Footer, Nav } from "@/components/site";
-import { COMMITMENTS, COUNTIES, PAST_EVENTS, RECS, REPORT_KINDS, US, levelOf, vulnerability, type County, type Level } from "@/lib/data";
-import { Bar, Button, Card, LevelPill, Lines, Pill, Row } from "@/components/ui";
+import { COMMITMENTS, COUNTIES, LEVEL_WORD, PAST_EVENTS, RECS, REPORT_KINDS, US, levelOf, vulnerability, type County, type Level } from "@/lib/data";
+import { Bar, Button, Card, LevelPill, Lines, Metric, Pill, Ring, Row } from "@/components/kit";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { activeEvent, post, useMoyai, type MoyaiState } from "@/components/useMoyai";
 
 type Role = "county" | "operator" | "resident";
@@ -70,7 +72,7 @@ export function Workspace({ role }: { role: Exclude<Role, "resident"> }) {
   return (
     <>
       <Nav current={role} />
-      <div className="mx-auto max-w-5xl px-4 pb-20 pt-8 sm:px-6">
+      <div className="mx-auto max-w-5xl px-6 pb-28 pt-36 sm:px-10">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-sm text-ink2">{WHO[role]}</p>
@@ -83,18 +85,20 @@ export function Workspace({ role }: { role: Exclude<Role, "resident"> }) {
             </select>
           </label>
         </header>
-        <nav aria-label="Pages" className="-mx-4 my-6 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-          {pages.map((p) => (
-            <button key={p} onClick={() => setPage(p)} aria-current={page === p ? "page" : undefined} className={`shrink-0 rounded-full px-4 py-2 text-sm transition-colors ${page === p ? "bg-ink text-canvas" : "text-ink2 hover:text-ink"}`}>
-              {role === "operator" && p === "overview" ? "Operations" : role === "operator" && p === "pays" ? "Our promises" : PAGES[p]}
-              {p === "alerts" && alerts > 0 && <span className="num ml-1.5 opacity-60">{alerts}</span>}
-            </button>
-          ))}
-        </nav>
+        <Tabs value={page} onValueChange={(v) => setPage(v as Page)} className="my-8">
+          <TabsList aria-label="Pages">
+            {pages.map((p) => (
+              <TabsTrigger key={p} value={p} className="whitespace-nowrap">
+                {role === "operator" && p === "overview" ? "Operations" : role === "operator" && p === "pays" ? "Our promises" : PAGES[p]}
+                {p === "alerts" && alerts > 0 && <span className="num ml-1.5 opacity-60">{alerts}</span>}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         {!s ? (
           <Loading />
         ) : (
-          <main key={page} className="enter flex flex-col gap-4">
+          <main key={page} className="enter flex flex-col gap-6">
             {page === "overview" && (role === "operator" ? <Operations s={s} /> : <Overview s={s} county={county} />)}
             {page === "live" && <Live s={s} />}
             {page === "cooling" && <Cooling s={s} canApply={role === "operator"} />}
@@ -118,7 +122,7 @@ export function Community() {
   return (
     <>
       <Nav current="community" />
-      <div className="mx-auto max-w-xl px-4 pb-20 pt-8">
+      <div className="mx-auto max-w-xl px-6 pb-28 pt-36">
         <label className="mb-4 flex items-center justify-between gap-3 text-sm text-ink2">
           Your community
           <select value={county.id} onChange={(e) => setCounty(e.target.value)} className="plush min-w-0 rounded-full bg-card px-3 py-1.5 text-ink">
@@ -147,10 +151,10 @@ function Operations({ s }: { s: MoyaiState }) {
         </div>
         <Lines height={120} label="Power draw, last 3 hours" series={[{ values: s.history.map((t) => t.uncutMW), dashed: true, muted: true }, { values: s.history.map((t) => t.facilityMW) }]} />
       </Card>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card title="To do"><Big value={`${todo}`} unit="cooling changes waiting for you" /></Card>
-        <Card title="Grid signals kept"><Big value={`${n1(f.reliability)}%`} unit={`${f.met} of ${f.total} met`} /></Card>
-        <Card title="Promises kept"><Big value={`${kept} of ${COMMITMENTS.length}`} unit="generator hours are at risk" /></Card>
+      <div className="grid gap-6 sm:grid-cols-3">
+        <Card title="Cooling changes done"><div className="flex items-center gap-4"><Ring pct={(f.applied.length / RECS.length) * 100} label="Cooling changes done">{f.applied.length}/{RECS.length}</Ring><span className="text-ink2">{todo} waiting for you</span></div></Card>
+        <Card title="Grid signals kept"><div className="flex items-center gap-4"><Ring pct={f.reliability} label="Grid signals kept" /><span className="text-ink2">{f.met} of {f.total} met</span></div></Card>
+        <Card title="Promises kept"><div className="flex items-center gap-4"><Ring pct={(kept / COMMITMENTS.length) * 100} label="Promises kept">{kept}/{COMMITMENTS.length}</Ring><span className="text-ink2">Generator hours are at risk</span></div></Card>
       </div>
     </>
   );
@@ -158,29 +162,22 @@ function Operations({ s }: { s: MoyaiState }) {
 
 function Overview({ s, county }: { s: MoyaiState; county: County }) {
   const f = facts(s);
-  const strip: [string, Level, string?][] = [
-    ["Power", levelOf(f.power, 110)],
-    ["Water", levelOf(f.water, 0.5)],
-    ["Cooling", "ok"],
-    ["Noise", levelOf(f.noise, 55)],
-    ["Generator hours", levelOf(f.genHours, 100)],
-    ["Grid relief", f.reliability >= 85 ? "ok" : "warn", `${n0(f.reliability)}% met`],
-    ["Cost protection", "ok", "$0 to homes"],
-    ["Local jobs", "warn", "184 of 300"],
-  ];
+  const lv = (v: number, max: number) => ({ pct: (v / max) * 100, tone: levelOf(v, max), word: LEVEL_WORD[levelOf(v, max)] });
   return (
     <>
       <Card title="Status today">
-        <div className="grid grid-cols-2 gap-x-6 sm:grid-cols-4">
-          {strip.map(([name, level, word]) => (
-            <div key={name} className="flex flex-col items-start gap-1 border-line py-2">
-              <span className="text-sm text-ink2">{name}</span>
-              {word ? <Pill tone={level}>{word}</Pill> : <LevelPill level={level} />}
-            </div>
-          ))}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <Metric name="Power" value={n1(f.power)} of="of 110 MW" {...lv(f.power, 110)} />
+          <Metric name="Water" value={f.water.toFixed(2)} of="of 0.50 M gal" {...lv(f.water, 0.5)} />
+          <Metric name="Night noise" value={n0(f.noise)} of="of 55 dB" {...lv(f.noise, 55)} />
+          <Metric name="Generator hours" value={n0(f.genHours)} of="of 100" {...lv(f.genHours, 100)} />
+          <Metric name="Grid signals kept" value={`${n0(f.reliability)}%`} pct={f.reliability} tone={f.reliability >= 85 ? "ok" : "warn"} word={`${f.met} of ${f.total}`} />
+          <Metric name="Local hires" value="184" of="of 300" pct={61} tone="warn" word="Pending" />
+          <Metric name="Promises kept" value="4" of="of 6" pct={67} tone="warn" word="1 at risk" />
+          <Metric name="Cost on household bills" value="$0" pct={0} tone="ok" word="Protected" />
         </div>
       </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Today in plain numbers">
           <p className="text-lg">
             The campus is using as much power as <b className="num font-medium">{n0((f.power * 1000) / 1.2)}</b> homes and as much water as <b className="num font-medium">{n0((f.water * 1e6) / 82)}</b> people.
@@ -222,27 +219,27 @@ function Live({ s }: { s: MoyaiState }) {
   const f = facts(s);
   const h = s.history.slice(-48 * 3);
   const mw = h.map((t) => t.facilityMW);
-  const cards: { name: string; value: string; unit: string; limit: string; level: Level; line: number[] }[] = [
-    { name: "Power draw", value: n1(f.power), unit: "megawatts (MW)", limit: "Permit 110 MW", level: levelOf(f.power, 110), line: mw },
-    { name: "Cooling power", value: n1(f.cooling), unit: `MW, ${n0((f.cooling / f.power) * 100)}% of the load`, limit: "No limit set", level: "ok", line: mw.map((v) => v * 0.107) },
-    { name: "Water taken", value: f.water.toFixed(2), unit: "million gallons a day", limit: "Permit 0.50", level: levelOf(f.water, 0.5), line: mw.map((v) => (0.41 * v) / 89.6) },
-    { name: "Energy efficiency", value: "1.12", unit: "total power ÷ computing power (PUE)", limit: "Target 1.40 or lower", level: "ok", line: mw.map(() => 1.12) },
-    { name: "Night noise at the fence", value: n0(f.noise), unit: "decibels (dB)", limit: "Limit 55 dB", level: levelOf(f.noise, 55), line: h.map((t) => 47 + 1.5 * Math.sin(t.min / 11)) },
-    { name: "Backup generator run time", value: n0(f.genHours), unit: "hours this year", limit: "Air permit 100 hours", level: levelOf(f.genHours, 100), line: h.map((_, i) => 90 + (i / h.length) * 2) },
+  const cards: { name: string; value: string; unit: string; limit: string; level: Level; line: number[]; pct: number }[] = [
+    { name: "Power draw", value: n1(f.power), unit: "megawatts (MW)", limit: "Permit 110 MW", level: levelOf(f.power, 110), line: mw, pct: (f.power / 110) * 100 },
+    { name: "Cooling power", value: n1(f.cooling), unit: `MW, ${n0((f.cooling / f.power) * 100)}% of the load`, limit: "No limit set", level: "ok", line: mw.map((v) => v * 0.107), pct: (f.cooling / f.power) * 100 },
+    { name: "Water taken", value: f.water.toFixed(2), unit: "million gallons a day", limit: "Permit 0.50", level: levelOf(f.water, 0.5), line: mw.map((v) => (0.41 * v) / 89.6), pct: (f.water / 0.5) * 100 },
+    { name: "Energy efficiency", value: "1.12", unit: "total power ÷ computing power (PUE)", limit: "Target 1.40 or lower", level: "ok", line: mw.map(() => 1.12), pct: 80 },
+    { name: "Night noise at the fence", value: n0(f.noise), unit: "decibels (dB)", limit: "Limit 55 dB", level: levelOf(f.noise, 55), line: h.map((t) => 47 + 1.5 * Math.sin(t.min / 11)), pct: (f.noise / 55) * 100 },
+    { name: "Backup generator run time", value: n0(f.genHours), unit: "hours this year", limit: "Air permit 100 hours", level: levelOf(f.genHours, 100), line: h.map((_, i) => 90 + (i / h.length) * 2), pct: f.genHours },
   ];
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {cards.map((c) => (
         <Card key={c.name} title={c.name}>
-          <div className="flex items-end justify-between gap-2">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="num text-3xl font-medium">{c.value}</div>
+              <div className="num text-4xl font-semibold">{c.value}</div>
               <div className="text-sm text-ink2">{c.unit}</div>
             </div>
-            <LevelPill level={c.level} />
+            <Ring pct={c.pct} label={`${c.name}, share of limit`} />
           </div>
-          <Lines series={[{ values: c.line }]} label={`${c.name}, recent trend`} />
-          <div className="text-xs text-ink3">{c.limit}</div>
+          <div className="my-4"><Lines series={[{ values: c.line }]} label={`${c.name}, recent trend`} /></div>
+          <div className="flex items-center justify-between gap-2 text-sm text-ink3">{c.limit}<LevelPill level={c.level} /></div>
         </Card>
       ))}
     </div>
@@ -305,7 +302,7 @@ function Grid({ s, canSend }: { s: MoyaiState; canSend: boolean }) {
   const done = s.events.filter((e) => e.verification).toReversed();
   return (
     <>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Card title="The promise" className="lg:col-span-2">
           <p className="text-lg">Drop to 70% of normal power within 10 minutes of a grid signal, for up to 40 hours a year.</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -314,9 +311,9 @@ function Grid({ s, canSend }: { s: MoyaiState; canSend: boolean }) {
           </div>
         </Card>
         <Card title="Kept its promise">
-          <div className="num text-4xl font-medium">{n1(f.reliability)}%</div>
-          <div className="text-sm text-ink2">
-            <span className="num">{f.met}</span> of <span className="num">{f.total}</span> signals met
+          <div className="flex items-center gap-4">
+            <Ring pct={f.reliability} size={96} label="Grid signals kept">{n0(f.reliability)}%</Ring>
+            <div className="text-ink2"><span className="num">{f.met}</span> of <span className="num">{f.total}</span> signals met</div>
           </div>
           <div className="mt-2"><Pill tone={f.reliability >= 85 && f.logOk ? "ok" : "warn"}>{f.reliability >= 85 && f.logOk ? "Ready to connect sooner" : "Needs review"}</Pill></div>
         </Card>
@@ -408,7 +405,7 @@ function Batteries({ s, county }: { s: MoyaiState; county: County }) {
   const yearly = (invest / pool) * (share / 100) * BATTERY_REVENUE;
   return (
     <>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Community battery">
           <div className="mb-2 flex items-baseline gap-3">
             <span className="num text-4xl font-medium">{n0(s.now.batterySoc * 100)}%</span>
@@ -453,13 +450,13 @@ function Batteries({ s, county }: { s: MoyaiState; county: County }) {
 function Jobs({ county }: { county: County }) {
   return (
     <>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Local hiring promise">
           <div className="mb-2 flex items-baseline gap-3">
             <span className="num text-4xl font-medium">184</span>
             <span className="text-ink2">of 300 promised local hires</span>
           </div>
-          <Bar value={184} max={300} />
+          <Progress value={184} max={300} aria-label="Local hires" />
           <p className="mt-2 text-sm text-ink2"><span className="num">61%</span> of hires live in ZIP <span className="num">{county.zip}</span> or next to it.</p>
         </Card>
         <Card title="Paid training">
@@ -562,7 +559,7 @@ function Resident({ s, county }: { s: MoyaiState; county: County }) {
     }
   };
   return (
-    <main lang={lang} className={`enter flex flex-col gap-4 ${large ? "large" : ""}`}>
+    <main lang={lang} className={`enter flex flex-col gap-6 ${large ? "large" : ""}`}>
       <div className="flex justify-end gap-4 text-sm">
         <button onClick={() => setLarge(!large)} aria-pressed={large} className="text-accent">{t.big}</button>
         <button onClick={() => setLang(lang === "en" ? "es" : "en")} className="text-accent">{t.lang}</button>
