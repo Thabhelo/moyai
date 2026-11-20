@@ -51,6 +51,7 @@ export function Footer() {
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             {LINKS.map((l) => <Link key={l.id} href={l.href} className="hover:text-ink">{l.name}</Link>)}
+            <a href="/prd.pdf" target="_blank" rel="noopener" className="hover:text-ink">Product requirements (PDF)</a>
           </div>
         </div>
         <div className="flex flex-wrap justify-between gap-2 border-t border-line pt-4 text-ink3">
