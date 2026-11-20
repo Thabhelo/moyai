@@ -125,19 +125,6 @@ export default function Landing() {
               </Reveal>
             ))}
           </div>
-          <Reveal className="plush grow-in mt-6 rounded-[40px] bg-card p-8 sm:p-14">
-            <svg viewBox="0 0 600 230" role="img" aria-label="Measured power use falls below the expected level after a cooling change" className="w-full">
-              <path d="M0,62 C150,50 300,74 600,60" fill="none" stroke="var(--ink3)" strokeWidth="1.5" strokeDasharray="3 7" strokeLinecap="round" />
-              <path className="draw" pathLength={1} d="M0,62 C110,52 220,72 330,64 C352,62 356,168 380,170 C450,176 520,164 600,170" fill="none" stroke="var(--ink)" strokeWidth="3" strokeLinecap="round" />
-              <g className="after-draw">
-                <circle className="pulse" cx="330" cy="64" r="6" fill="var(--hot)" />
-                <circle cx="330" cy="64" r="6" fill="var(--hot)" />
-                <text x="330" y="38" textAnchor="middle" fill="var(--ink2)" fontSize="15">Change applied</text>
-                <text x="560" y="44" textAnchor="end" fill="var(--ink3)" fontSize="14">Expected use in this weather</text>
-                <text x="470" y="206" textAnchor="middle" fill="var(--ink)" fontSize="17" fontWeight="700">Measured use: the gap is the verified saving</text>
-              </g>
-            </svg>
-          </Reveal>
         </section>
 
         <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
