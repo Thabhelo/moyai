@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Footer, Nav } from "@/components/site";
 import { COMMITMENTS, COUNTIES, LEVEL_WORD, PAST_EVENTS, RECS, REPORT_KINDS, US, levelOf, vulnerability, type County, type Level } from "@/lib/data";
-import { Bar, Button, Card, LevelPill, Lines, Metric, Pill, Ring, Row } from "@/components/kit";
+import { Bar, Button, Card, LevelPill, Lines, Metric, Pill, Ring, Row, toast } from "@/components/kit";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { activeEvent, isPresenter, post, useMoyai, type MoyaiState } from "@/components/useMoyai";
@@ -99,7 +99,7 @@ export function Workspace({ role }: { role: Exclude<Role, "resident"> }) {
           <Loading />
         ) : (
           <main key={page} className="enter flex flex-col gap-6">
-            {page === "overview" && (role === "operator" ? <Operations s={s} /> : <Overview s={s} county={county} go={setPage} />)}
+            {page === "overview" && (role === "operator" ? <Operations s={s} /> : <Overview s={s} county={county} go={(p) => { setPage(p); scrollTo({ top: 0, behavior: "smooth" }); }} />)}
             {page === "live" && <Live s={s} />}
             {page === "cooling" && <Cooling s={s} canApply={role === "operator"} />}
             {page === "grid" && <Grid s={s} canSend={role === "operator"} />}
@@ -296,7 +296,7 @@ function Cooling({ s, canApply }: { s: MoyaiState; canApply: boolean }) {
                     {r.why}. Saves about <span className="num">{r.mw}</span> MW and <span className="num">{n0(r.gal)}</span> gallons a day.
                   </div>
                 </div>
-                {at ? <Pill tone={status === "Verified" ? "ok" : "info"}>{status}</Pill> : canApply ? <Button quiet onClick={() => post("apply", { rec: r.id })}>Mark applied</Button> : <Pill tone="info">Recommended</Pill>}
+                {at ? <Pill tone={status === "Verified" ? "ok" : "info"}>{status}</Pill> : canApply ? <Button quiet onClick={async () => { const ok = (await post("apply", { rec: r.id })).ok; toast(ok ? `Marked applied. Moyai is checking the saving of ${r.mw} MW against the meters.` : "That change could not be marked. Please try again.", ok ? "ok" : "bad"); return ok; }}>Mark applied</Button> : <Pill tone="info">Recommended</Pill>}
               </li>
             );
           })}
@@ -317,12 +317,27 @@ const Big = ({ value, unit }: { value: string; unit: string }) => (
 function Grid({ s, canSend }: { s: MoyaiState; canSend: boolean }) {
   const f = facts(s);
   const live = activeEvent(s);
-  const [error, setError] = useState("");
   const send = async () => {
     const r = await post("event", { targetPct: 0.3, durationMin: 30 });
-    setError(r.ok ? "" : "A grid signal is already running.");
+    if (!r.ok) {
+      toast("A grid signal is already running.", "bad");
+      return false;
+    }
+    const ev = await r.json();
+    toast(`Grid signal sent. The campus has 10 minutes to drop to ${n1(ev.baselineMW * (1 - ev.targetPct))} MW.`);
   };
   const done = s.events.filter((e) => e.verification).toReversed();
+  // When a running signal finishes, say how it went.
+  const wasLive = useRef(0);
+  const last = done[0];
+  useEffect(() => {
+    if (live) wasLive.current = live.id;
+    else if (last && wasLive.current === last.id) {
+      wasLive.current = 0;
+      const v = last.verification!;
+      toast(v.compliant ? `Grid signal met. ${n1(v.avgShedMW)} MW cut on average, and the signed proof is ready.` : `Grid signal fell short. ${n1(v.avgShedMW)} MW cut on average.`, v.compliant ? "ok" : "bad");
+    }
+  }, [live, last]);
   return (
     <>
       <div className="grid gap-6 lg:grid-cols-3">
@@ -330,8 +345,15 @@ function Grid({ s, canSend }: { s: MoyaiState; canSend: boolean }) {
           <p className="text-lg">Drop to 70% of normal power within 10 minutes of a grid signal, for up to 40 hours a year.</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             {canSend ? <Button onClick={send} disabled={!!live}>{live ? "Signal running, load is dropping" : "Send grid peak signal"}</Button> : <Pill tone="info">{live ? "Signal running, load is dropping" : "Sent from the data center workspace"}</Pill>}
-            <span className="text-sm text-ink3">{error || (canSend ? "1 second here is 1 minute at the campus." : "")}</span>
+            <span className="text-sm text-ink3">{canSend ? "1 second here is 1 minute at the campus." : ""}</span>
           </div>
+          {live ? <Signal s={s} ev={live} /> : last && (
+            <p className="mt-5 border-t border-line pt-4 text-ink2">
+              Last signal: <Pill tone={last.verification!.compliant ? "ok" : "bad"}>{last.verification!.compliant ? "Met" : "Short"}</Pill>{" "}
+              <span className="num">{n1(last.verification!.avgShedMW)}</span> MW cut, promised level reached in <span className="num">{last.verification!.rampMinutes ?? "–"}</span> min.{" "}
+              <a href={`/certificate?id=${last.id}`} className="ulink text-ink">See the signed proof</a>
+            </p>
+          )}
         </Card>
         <Card title="Kept its promise">
           <div className="flex items-center gap-4">
@@ -370,6 +392,38 @@ function Grid({ s, canSend }: { s: MoyaiState; canSend: boolean }) {
         </div>
       </Card>
     </>
+  );
+}
+
+/** What the campus is doing right now to answer a grid signal. */
+function Signal({ s, ev }: { s: MoyaiState; ev: MoyaiState["events"][number] }) {
+  const total = ev.endMin - ev.startMin;
+  const passed = Math.min(total, Math.max(0, s.now.min - ev.startMin));
+  const target = ev.baselineMW * (1 - ev.targetPct);
+  const steps: [string, boolean][] = [
+    ["Signal received by the campus", true],
+    [`Battery supplying ${n1(Math.max(0, s.now.batteryMW))} MW`, s.now.batteryMW > 0.5],
+    [`AI training paused, ${n1(s.now.computeShedMW)} MW`, s.now.computeShedMW > 0.5],
+    [`At the promised ${n1(target)} MW or lower`, passed > 0 && s.now.facilityMW <= target * 1.01],
+  ];
+  return (
+    <div className="signal mt-5 border-t border-line pt-5">
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+        <span className="flex items-center gap-2.5 font-medium"><span className="pulse" />Signal in progress</span>
+        <span className="num text-sm text-ink2">{passed} of {total} minutes · now drawing {n1(s.now.facilityMW)} MW</span>
+      </div>
+      <div className="signal-bar"><div style={{ width: `${(passed / total) * 100}%` }} /></div>
+      <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
+        {steps.map(([text, on]) => (
+          <li key={text.replace(/[\d.]+/g, "")} className={`flex items-center gap-2.5 ${on ? "" : "text-ink3"}`}>
+            <span className="step-dot" data-on={on}>
+              {on ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg> : <span className="spinner" />}
+            </span>
+            <span className="num">{text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -504,6 +558,8 @@ function Alerts({ s }: { s: MoyaiState }) {
   const demo = async (path: "tamper" | "reset") => {
     const r = await post(path);
     setDemoError(r.ok ? "" : ((await r.json().catch(() => null))?.error ?? "That did not work."));
+    if (r.ok) toast(path === "tamper" ? "An old reading was edited. The record book shows where." : "Started over with a clean record book.");
+    return r.ok;
   };
   return (
     <>
@@ -588,7 +644,9 @@ function Resident({ s, county }: { s: MoyaiState; county: County }) {
     if (r.ok) {
       setSent(true);
       setNote("");
+      toast(t.sent);
     }
+    return r.ok;
   };
   return (
     <main lang={lang} className={`enter flex flex-col gap-6 ${large ? "large" : ""}`}>

@@ -74,6 +74,7 @@ export default function Landing() {
             <p className="px-6 text-2xl text-ink2 sm:text-3xl">
               Data center accountability <span className="text-ink">for communities that host them.</span>
             </p>
+            <p className="mt-4 px-6 text-base text-ink3">Powering the AI buildout</p>
             <div className="fade mt-10 flex flex-col items-center gap-4 px-6" style={{ animationDelay: "0.8s" }}>
               <Link href="/county" className="cta rounded-full bg-ink px-6 py-3 text-lg font-semibold text-canvas">See Shelby County live</Link>
               <p className="flex items-center gap-2 text-sm text-ink2">
@@ -144,6 +145,7 @@ export default function Landing() {
         <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
           <Reveal>
             <h2 className="text-5xl font-bold sm:text-6xl">What holds new data centers back, and what Moyai does about it</h2>
+            <p className="mt-6 max-w-2xl text-xl text-ink2">AI data centers are being built faster than the power lines, water systems and workforce around them can keep up. These four delays slow every new site.</p>
           </Reveal>
           <div className="mt-12 grid gap-6 md:grid-cols-2">
             {ANSWERS.map((a, i) => (

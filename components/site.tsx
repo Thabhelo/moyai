@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { Toasts } from "@/components/kit";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 const LINKS = [
@@ -27,6 +28,7 @@ export function Nav({ current }: { current?: string }) {
   return (
     <nav aria-label="Moyai" className="fixed inset-x-0 top-4 z-20 px-4">
       <div className="scrollbar" aria-hidden />
+      <Toasts />
       <div className="glass mx-auto flex h-16 max-w-4xl items-center gap-2 rounded-full pl-7 pr-2.5">
         <Link href="/" className="logo mr-auto text-[1.7rem] font-medium tracking-tight">moyai</Link>
         <div className="seg flex overflow-x-auto rounded-full p-1 text-[0.9rem] sm:text-base">

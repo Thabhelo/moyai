@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Button, Card, Metric, Pill, Ring, Row } from "@/components/kit";
+import { Button, Card, Metric, Pill, Ring, Row, toast } from "@/components/kit";
 import { post, useMoyai } from "@/components/useMoyai";
 import { Footer, Nav, Reveal } from "@/components/site";
 
@@ -37,13 +37,24 @@ export function Training() {
   const [place, setPlace] = useState(0);
   const [saved, setSaved] = useState(0);
   const zipOk = ZIPS.includes(zip.trim());
+  const [asked, setAsked] = useState(false);
   const apply = async () => {
+    setAsked(true);
+    if (!zipOk) return false;
     const r = await post("signup", { kind: "apply", course, zip: zip.trim() });
-    if (r.ok) setPlace((await r.json()).place);
+    if (r.ok) {
+      setPlace((await r.json()).place);
+      toast("Application received. We will write to you about the next start date.");
+    }
+    return r.ok;
   };
   const invest = async () => {
     const r = await post("signup", { kind: "invest", pct: share });
-    if (r.ok) setSaved(share);
+    if (r.ok) {
+      setSaved(share);
+      toast(`Saved. ${share}% of each paycheck goes into battery shares from your next payday.`);
+    }
+    return r.ok;
   };
   const applied = s?.signups.apply ?? 0;
   return (
@@ -113,9 +124,10 @@ export function Training() {
                 Your ZIP code
                 <input value={zip} onChange={(e) => { setZip(e.target.value); setPlace(0); }} inputMode="numeric" maxLength={5} placeholder="38109" className="num rounded-2xl bg-canvas px-4 py-3 text-lg text-ink" />
               </label>
+              {asked && zip.trim().length !== 5 && <p role="alert" style={{ color: "var(--warn)" }}>Enter your 5-digit ZIP code to apply.</p>}
               {zip.trim().length === 5 && !zipOk && <p className="text-ink2">The program covers these ZIP codes for now: {ZIPS.join(", ")}.</p>}
               <div className="flex flex-wrap items-center gap-3">
-                <Button onClick={apply} disabled={!zipOk || place > 0}>Apply</Button>
+                <Button onClick={apply} disabled={place > 0}>Apply</Button>
                 {place > 0 && <span role="status"><Pill tone="ok">Application received</Pill> <span className="ml-2 text-ink2">You are number {11 + place} in line for the {TRACKS.find((t) => t.id === course)!.name.toLowerCase()} course.</span></span>}
               </div>
             </div>

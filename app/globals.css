@@ -675,3 +675,26 @@ main.enter > *:nth-child(n + 5) { animation-delay: 280ms; }
     --plush-focus-color: var(--plush-on-accent);
     --plush-surface-hover: var(--plush-fill);
 }
+/* Buttons: a press is always visible. */
+.btn { transition: transform 0.18s var(--ease), opacity 0.2s, box-shadow 0.25s; }
+.btn:not(:disabled):hover { box-shadow: 0 6px 18px rgba(20, 20, 20, 0.12); transform: translateY(-1px); }
+.btn:not(:disabled):active { transform: scale(0.95); }
+.btn-label { display: inline-block; transition: opacity 0.15s, transform 0.2s var(--ease); }
+.btn[data-phase="busy"] .btn-label, .btn[data-phase="done"] .btn-label { opacity: 0; transform: scale(0.96); }
+.spinner { width: 1.05rem; height: 1.05rem; border-radius: 999px; border: 2px solid currentColor; border-right-color: transparent; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.tick path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: tick 0.35s var(--ease) forwards; }
+@keyframes tick { to { stroke-dashoffset: 0; } }
+.toast { background: var(--card); animation: toast-in 0.45s var(--ease) both; box-shadow: 0 14px 40px rgba(20, 20, 20, 0.16); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(14px) scale(0.96); } }
+/* A grid signal in progress. */
+.signal { animation: enter 0.5s var(--ease) both; }
+.signal-bar { height: 0.5rem; border-radius: 999px; background: var(--fill); overflow: hidden; }
+.signal-bar > div { height: 100%; border-radius: 999px; background: var(--hot); transition: width 1s linear; }
+.step-dot { width: 1.4rem; height: 1.4rem; flex: none; display: grid; place-items: center; border-radius: 999px; background: var(--fill); color: var(--ink3); transition: background-color 0.4s, color 0.4s; }
+.step-dot[data-on="true"] { background: var(--hot); color: #fff; }
+.step-dot[data-on="false"] .spinner { width: 0.7rem; height: 0.7rem; border-width: 1.5px; }
+.pulse { position: relative; display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 999px; background: var(--hot); }
+.pulse::after { content: ""; position: absolute; inset: 0; border-radius: 999px; background: var(--hot); animation: pulse 1.4s ease-out infinite; }
+@keyframes pulse { to { transform: scale(3); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pulse::after, .toast, .signal { animation: none; } }

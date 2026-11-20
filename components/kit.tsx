@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+"use client";
+import { useEffect, useState, type ReactNode } from "react";
 import { LEVEL_WORD, type Level } from "@/lib/data";
 import { Progress } from "@/components/ui/progress";
 import { ProgressRing } from "@/components/ui/progress-ring";
@@ -55,11 +56,67 @@ export function Row({ label, children }: { label: string; children: ReactNode })
   );
 }
 
-export function Button({ children, onClick, disabled, quiet }: { children: ReactNode; onClick?: () => void; disabled?: boolean; quiet?: boolean }) {
+/**
+ * Every press shows something: a spinner while the work runs, then a tick.
+ * The handler may return a promise; resolving to false means it did not go through.
+ */
+export function Button({ children, onClick, disabled, quiet }: { children: ReactNode; onClick?: () => unknown; disabled?: boolean; quiet?: boolean }) {
+  const [phase, setPhase] = useState<"idle" | "busy" | "done">("idle");
+  const click = async () => {
+    if (phase === "busy") return;
+    setPhase("busy");
+    let ok = true;
+    try {
+      // Hold the spinner for a moment even when the answer is instant, so the press is always seen.
+      const [out] = await Promise.all([onClick?.(), new Promise((r) => setTimeout(r, 450))]);
+      ok = out !== false;
+    } catch {
+      ok = false;
+      toast("That did not go through. Please try again.", "bad");
+    }
+    setPhase(ok ? "done" : "idle");
+    if (ok) setTimeout(() => setPhase("idle"), 1100);
+  };
   return (
-    <button onClick={onClick} disabled={disabled} className={`rounded-full px-5 py-2 text-sm font-medium transition-opacity disabled:opacity-50 ${quiet ? "bg-accent-soft text-accent" : "bg-accent text-on-accent"}`}>
-      {children}
+    <button onClick={click} disabled={disabled} aria-busy={phase === "busy"} data-phase={phase} className={`btn relative rounded-full px-5 py-2 text-sm font-medium disabled:opacity-50 ${quiet ? "bg-accent-soft text-accent" : "bg-accent text-on-accent"}`}>
+      <span className="btn-label">{children}</span>
+      {phase !== "idle" && (
+        <span className="absolute inset-0 grid place-items-center" aria-hidden>
+          {phase === "busy" ? <span className="spinner" /> : (
+            <svg className="tick" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+          )}
+        </span>
+      )}
     </button>
+  );
+}
+
+type Toast = { id: number; text: string; tone: "ok" | "bad" };
+/** Shows a short message at the bottom of the screen, from anywhere in the app. */
+export const toast = (text: string, tone: Toast["tone"] = "ok") => dispatchEvent(new CustomEvent("moyai-toast", { detail: { text, tone } }));
+
+/** The stack of messages; rendered once, by the nav. */
+export function Toasts() {
+  const [list, setList] = useState<Toast[]>([]);
+  useEffect(() => {
+    let n = 0;
+    const add = (e: Event) => {
+      const t = { ...(e as CustomEvent).detail, id: ++n } as Toast;
+      setList((l) => [...l.slice(-2), t]);
+      setTimeout(() => setList((l) => l.filter((x) => x.id !== t.id)), 5000);
+    };
+    addEventListener("moyai-toast", add);
+    return () => removeEventListener("moyai-toast", add);
+  }, []);
+  return (
+    <div role="status" aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex flex-col items-center gap-2 px-4">
+      {list.map((t) => (
+        <div key={t.id} className="toast glass flex max-w-xl items-center gap-3 rounded-full py-3 pl-4 pr-6 text-[15px]">
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: t.tone === "ok" ? "var(--hot)" : "var(--bad)" }} />
+          {t.text}
+        </div>
+      ))}
+    </div>
   );
 }
 
