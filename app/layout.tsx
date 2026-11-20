@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Moyai",
-  description: "Verified grid relief for the communities that host AI data centers.",
+  description: "Data center accountability for communities that host them.",
 };
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
 

@@ -43,7 +43,7 @@ export default function Landing() {
             </h1>
             <Rope className="fade my-[1vh] h-[clamp(48px,7vw,84px)] w-full" />
             <p className="fade px-6 text-2xl text-ink2 sm:text-3xl" style={{ animationDelay: "0.5s" }}>
-              Proof that a data center cuts power <span className="text-ink">when the grid asks.</span>
+              Data center accountability <span className="text-ink">for communities that host them.</span>
             </p>
           </div>
         </section>
