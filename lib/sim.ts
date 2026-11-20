@@ -130,7 +130,7 @@ export function certificate(eventId: number) {
   const ev = s.events.find((e) => e.id === eventId);
   if (!ev?.verification || !ev.ledgerHead) return null;
   const body = {
-    facility: "Host campus (simulated), Shelby County, TN, ZIP 38109",
+    facility: "Host campus (simulated 100 MW AI data center)",
     eventId,
     window: { start: tsOf(ev.startMin), end: tsOf(ev.endMin) },
     targetPct: ev.targetPct,
