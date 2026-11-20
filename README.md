@@ -8,57 +8,71 @@ Moyai checks, in real time, that an AI data center actually cuts its power when 
 
 ## Stack
 
-Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · Vitest · pnpm
+Next.js 16 (static export) · TypeScript · Tailwind CSS 4 · Cloudflare Workers · Durable Objects with SQLite · Vitest · pnpm
+
+The pages are static files served from Cloudflare's edge. One Worker (`worker/index.ts`) answers `/api/*` and passes each request to a Durable Object, a small always-consistent server that holds the simulated campus and a SQLite database of resident reports and applied cooling changes.
 
 ## Run it
 
 ```bash
 pnpm install
-pnpm dev          # http://localhost:3000
+pnpm preview      # builds, then serves site + API at http://localhost:8787
 pnpm test         # core logic tests
+pnpm deploy       # builds and publishes to Cloudflare
 ```
 
-1 real second = 1 simulated minute, so a 2-hour grid event takes 2 real minutes.
+1 real second = 1 simulated minute, so a 30-minute grid signal takes 30 seconds.
 
-## Views
+## Sign-in and pages
 
-| Route | Who | What |
-|---|---|---|
-| `/operator` | Facility team | Load, battery, paused compute, coolant temps and flow, city water = 0 |
-| `/utility` | Utility dispatcher | "Send grid alert" button, committed level, verified result |
-| `/county` | County planner | Water vs permit, audit log status, signed certificate link, tamper demo |
-| `/public` | Residents | Plain-language status, English/Español |
+Pick a role and a county (residents enter a ZIP code). Every screen is then scoped to that one county.
+
+| Role | Sees |
+|---|---|
+| County official | Overview, Live readings, Cooling, Grid relief, Who pays, Batteries, Local jobs, Alerts |
+| Utility engineer | Overview, Live readings, Grid relief, Who pays |
+| Data center operator | Overview, Live readings, Cooling, Grid relief, Who pays |
+| Resident | One plain-language page in English or Spanish, with a problem report form |
+
+Census figures in `lib/data.ts` are real (U.S. Census ACS 2020-2024). Every other number is labeled "Demo data".
 
 ## API
 
 | Method | Route | Does |
 |---|---|---|
-| GET | `/api/state` | Advances the sim to now; returns the latest reading, last 3 h, events, the ledger tail and the first broken ledger entry (`brokenAt`) |
-| POST | `/api/event` | Starts a curtailment event `{ targetPct: 0.25, durationMin: 120 }` |
+| GET | `/api/state?county=shelby` | Advances the sim to now; returns the latest reading, last 3 h, events, the ledger tail, the first broken ledger entry, that county's resident reports and applied cooling changes |
+| POST | `/api/event` | Starts a grid signal `{ targetPct: 0.25, durationMin: 30 }` |
 | GET | `/api/certificate/:id` | Signed certificate for a finished event |
+| POST | `/api/report` | Saves a resident report `{ county, kind, note }` |
+| POST | `/api/apply` | Marks a cooling recommendation applied `{ rec }` |
 | POST | `/api/tamper` | Demo: edits an old reading so the log shows it as broken |
-| POST | `/api/reset` | Restarts the simulation |
+| POST | `/api/reset` | Restarts the simulation and clears reports |
 
 ## Code
 
 - `lib/sim.ts`: the simulated campus. Battery covers the cut first, then paused AI training covers the rest.
 - `lib/baseline.ts`: baseline and curtailment verification. Passes if load reaches the committed level within the 5-minute dispatch window and stays there. Also estimates the water saved at power plants (Duke grid, 2.26 L/kWh).
 - `lib/ledger.ts`: SHA-256 hash chain plus Ed25519 signing.
-- `components/useMoyai.ts`: every view polls `/api/state` each second, so a dispatch on one screen shows on all of them.
+- `worker/index.ts`: the Cloudflare Worker and Durable Object.
+- `lib/data.ts`: the six host communities, cooling recommendations and demo figures.
+- `app/page.tsx`: every screen. `components/useMoyai.ts` polls `/api/state` each second, so an action on one device shows on all of them.
 
-## Demo script (60 s)
+## Demo script (3 minutes)
 
-1. Open `/utility` and `/public` side by side (the second on a phone if possible).
-2. Click **Send grid alert**. The load drops 25% within 5 simulated minutes, and the battery and paused compute share the cut.
-3. Residents' view switches to "using less power to help the grid."
-4. When the event ends, `/county` shows "Verified" and the signed certificate.
-5. Click **Demo: tamper with a reading**. The audit log flips to "Broken at #N."
+1. Sign in as County official, Shelby County, TN. Show the community profile and status strip.
+2. Live readings: backup generator hours show "Near limit".
+3. Cooling: click **Mark applied**. The verified savings rise.
+4. Grid relief: click **Send grid peak signal**. The load drops, the event is logged as Verified Met and the score rises from 87.5% to 88.9%.
+5. Who pays: $0 added to household rates, plus the promises tracker.
+6. Switch to Resident, ZIP 38109. Read the plain answer and send a noise report.
+7. Switch back to County. The report is in Alerts.
 
 ## Known shortcuts
 
-- State lives in memory in one server process. **Demo from one machine** (`pnpm build && pnpm start`) or a single-instance host. On Vercel, separate serverless instances won't share state. Move the state to Redis/Postgres for that.
+- The simulated campus lives in the Durable Object's memory. It restarts if nobody has the app open for a while. Resident reports and applied changes are in SQLite and stay.
 - The baseline is "the hour before the event." Real demand-response programs use multi-day, weather-adjusted baselines.
-- The signing key is created fresh each time the server starts.
+- The signing key is created fresh each time the Durable Object starts.
+- Sign-in is a role picker with no password. County scoping is not enforced on the server yet.
 
 ## Team split
 
