@@ -498,10 +498,12 @@ main.enter > *:nth-child(n + 5) { animation-delay: 280ms; }
 /* Homepage: the hero photo eases in from a soft zoom, then drifts very slowly. */
 .home, .home h1, .home h2, .home .font-head { font-family: var(--font-tight), system-ui, sans-serif; }
 .home h2, .home .font-head { font-weight: 500; letter-spacing: -0.035em; }
-.hero-photo { border-radius: 0 0 40px 40px; background: #b9d4c2; }
+.hero-photo { border-radius: 0 0 40px 40px; background: linear-gradient(#bcd7c6, #8fb6a1); }
+/* On tall phone screens show the whole picture, so the lettering is never cropped. */
+@media (max-aspect-ratio: 1/1) { .hero-img { object-fit: contain; } }
 /* The rest of the landing page sits on a faint green wash of the same photo. */
 .home { position: relative; background: linear-gradient(180deg, #eaf5ee 0%, #f3faf5 28%, #eff8f2 65%, #e2f1e7 100%); }
-.home::before { content: ""; position: absolute; left: 0; right: 0; top: min(94svh, 55.8vw); aspect-ratio: 1600 / 318; background: url(/bg-green.webp) top / 100% auto no-repeat; opacity: 0.5; pointer-events: none; }
+.home::before { content: ""; position: absolute; left: 0; right: 0; top: 100svh; aspect-ratio: 1600 / 318; background: url(/bg-green.webp) top / 100% auto no-repeat; opacity: 0.5; pointer-events: none; }
 .home > * { position: relative; }
 @media (prefers-color-scheme: dark) { .home { background: linear-gradient(180deg, #0b100d 0%, #0b0b0b 40%, #0c130f 100%); } .home::before { opacity: 0.06; } }
 .hero-img { animation: hero-in 2.4s var(--ease) both, hero-drift 26s ease-in-out 2.4s infinite alternate; }

@@ -115,7 +115,10 @@ export default {
     const { pathname } = new URL(req.url);
     // Pages are static files; only /api/* needs the campus.
     // prd.moyai.fyi always opens the product requirements document.
-    if (new URL(req.url).hostname === "prd.moyai.fyi") return env.ASSETS.fetch(new Request(new URL("/prd.pdf", req.url), { method: "GET" }));
+    // The address ends in .pdf and the original request goes through untouched, so PDF viewers can ask for parts of the file.
+    if (new URL(req.url).hostname === "prd.moyai.fyi") {
+      return pathname === "/prd.pdf" ? env.ASSETS.fetch(req) : Response.redirect(new URL("/prd.pdf", req.url).toString(), 302);
+    }
     if (!pathname.startsWith("/api/")) return env.ASSETS.fetch(req);
     if (DEMO_ONLY.includes(pathname) && !(await demoAllowed(req, env))) return json({ error: "Demo controls need the presenter key." }, 403);
     return env.CAMPUS.get(env.CAMPUS.idFromName("campus")).fetch(req);

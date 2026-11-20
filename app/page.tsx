@@ -55,7 +55,7 @@ export default function Landing() {
       <Nav />
       <main className="home overflow-x-clip">
         <section className="text-center">
-          <div className="hero-photo relative mx-auto aspect-[2400/1339] max-h-[94svh] w-full overflow-hidden">
+          <div className="hero-photo relative mx-auto h-svh w-full overflow-hidden">
             <img
               src="/hero.webp"
               srcSet="/hero-1200.webp 1200w, /hero.webp 2400w"
@@ -66,11 +66,12 @@ export default function Landing() {
               alt="moyai, Team Tornadoes. A power pylon and its lines in soft green."
               className="hero-img h-full w-full object-cover"
             />
+            {/* The rope runs along the bottom edge of the hero, over the photo. */}
+            <Rope className="fade absolute inset-x-0 bottom-[3svh] h-[clamp(40px,6vw,72px)] w-full" />
           </div>
           <h1 className="sr-only">Moyai</h1>
-          <div className="w-full">
-            <Rope className="fade my-[2vh] h-[clamp(40px,6vw,72px)] w-full" />
-            <p className="fade px-6 text-2xl text-ink2 sm:text-3xl" style={{ animationDelay: "0.5s" }}>
+          <div className="w-full pt-28">
+            <p className="px-6 text-2xl text-ink2 sm:text-3xl">
               Data center accountability <span className="text-ink">for communities that host them.</span>
             </p>
             <div className="fade mt-10 flex flex-col items-center gap-4 px-6" style={{ animationDelay: "0.8s" }}>
