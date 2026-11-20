@@ -464,7 +464,6 @@ function Batteries({ s, county }: { s: MoyaiState; county: County }) {
             <Row label="Neighbors who can join at this amount">{n0(pool / invest)}</Row>
           </div>
         </div>
-        <p className="mt-3 text-xs text-ink3">An illustration, not an offer to invest. U.S. crowdfunding rules cap a raise at $5 million a year and limit most people to the greater of $2,500 or 5% of their income or net worth.</p>
       </Card>
     </>
   );

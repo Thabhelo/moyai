@@ -148,7 +148,6 @@ export function Training() {
                 <p className="mt-3 text-sm text-ink3">{38 + (s?.signups.invest ?? 0)} workers invest this way.</p>
               </div>
             </div>
-            <p className="mt-5 text-sm text-ink3">An illustration, not an offer to invest. U.S. crowdfunding rules limit most people to the greater of $2,500 or 5% of their income or net worth a year, so this stops at $2,500.</p>
           </Card>
         </Reveal>
       </main>
