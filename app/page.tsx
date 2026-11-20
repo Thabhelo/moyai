@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Footer, Nav, Num, Reveal, Rope } from "@/components/site";
 import { Shader } from "@/components/shader";
@@ -42,7 +43,7 @@ export default function Landing() {
         <section className="relative flex min-h-svh flex-col items-center justify-center text-center">
           <Shader className="fade absolute inset-0 -z-10 h-full w-full" />
           <div className="hero-out w-full">
-            <h1 aria-label="Moyai" className="font-head text-[clamp(6rem,27vw,23rem)] font-extrabold leading-[0.9] tracking-[-0.05em]">
+            <h1 aria-label="Moyai" className="font-head text-[clamp(6rem,27vw,23rem)] font-bold leading-[0.9] tracking-[-0.05em]">
               {"Moyai".split("").map((ch, i) => (
                 <span key={i} className="mask" aria-hidden>
                   <span className="rise" style={{ animationDelay: `${i * 80}ms` }}>{ch}</span>
@@ -53,12 +54,19 @@ export default function Landing() {
             <p className="fade px-6 text-2xl text-ink2 sm:text-3xl" style={{ animationDelay: "0.5s" }}>
               Data center accountability <span className="text-ink">for communities that host them.</span>
             </p>
+            <div className="fade mt-10 flex flex-col items-center gap-4 px-6" style={{ animationDelay: "0.8s" }}>
+              <Link href="/county" className="cta rounded-full bg-ink px-6 py-3 text-lg font-semibold text-canvas">See Shelby County live</Link>
+              <p className="flex items-center gap-2 text-sm text-ink2">
+                <span className="h-2 w-2 rounded-full bg-hot" aria-hidden />
+                {f ? <>Drawing {f.power.toFixed(1)} MW right now, demo data</> : "Connecting to the campus"}
+              </p>
+            </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
+          <Tagline lines={["Power management", "a utility can check"]} />
           <Reveal>
-            <h2 className="text-5xl font-bold sm:text-6xl">Power management a utility can check</h2>
             <p className="mt-5 max-w-2xl text-xl text-ink2">When the grid is under strain, the data center lowers its power use by 30% within minutes. Moyai measures the cut against normal use and publishes the result.</p>
           </Reveal>
           <Reveal className="plush grow-in mt-12 rounded-[40px] bg-card p-8 sm:p-14">
@@ -117,7 +125,7 @@ export default function Landing() {
                 </span>
                 <span>
                   <span className="block text-lg text-ink2">{d.who}</span>
-                  <span className="mt-1 block font-head text-[1.7rem] font-bold leading-tight tracking-tight">{d.line}</span>
+                  <span className="mt-1 block font-head text-2xl font-bold leading-tight tracking-tight">{d.line}</span>
                 </span>
               </Link>
             </Reveal>
@@ -140,5 +148,36 @@ function Glass({ value, unit, ring }: { value: React.ReactNode; unit: string; ri
         <p className="mt-2 text-lg text-ink2">{unit}</p>
       </div>
     </div>
+  );
+}
+
+// Words start muted and turn solid one at a time, in reading order, as the heading scrolls up the screen.
+function Tagline({ lines }: { lines: string[] }) {
+  const ref = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const words = [...el.querySelectorAll<HTMLElement>("[data-w]")];
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return words.forEach((w) => w.setAttribute("data-on", ""));
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const progress = (innerHeight * 0.85 - el.getBoundingClientRect().top) / (innerHeight * 0.45);
+      const lit = Math.round(Math.min(1, Math.max(0, progress)) * words.length);
+      words.forEach((w, i) => w.toggleAttribute("data-on", i < lit));
+    };
+    const onScroll = () => { frame ||= requestAnimationFrame(update); };
+    update();
+    addEventListener("scroll", onScroll, { passive: true });
+    return () => { removeEventListener("scroll", onScroll); cancelAnimationFrame(frame); };
+  }, []);
+  return (
+    <h2 ref={ref} className="tagline max-w-[680px] text-5xl font-bold sm:text-7xl">
+      {lines.map((line, l) => (
+        <span key={l} className="block">
+          {line.split(" ").map((w, i) => <span key={i} data-w>{w} </span>)}
+        </span>
+      ))}
+    </h2>
   );
 }
