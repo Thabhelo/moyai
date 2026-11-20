@@ -10,7 +10,7 @@ export default function Operator() {
     <main className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-10">
       <h1 className="text-2xl font-bold">Operator view</h1>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Stat label="Facility load" value={`${n.facilityMW.toFixed(1)} MW`} note={`baseline ${n.baselineMW.toFixed(1)} MW`} />
+        <Stat label="Facility load" value={`${n.facilityMW.toFixed(1)} MW`} note={`would draw ${n.uncutMW.toFixed(1)} MW`} />
         <Stat label="Battery" value={`${(n.batterySoc * 100).toFixed(0)}%`} note={n.batteryMW < 0 ? `charging ${(-n.batteryMW).toFixed(1)} MW` : `${n.batteryMW.toFixed(1)} MW out`} />
         <Stat label="Compute paused" value={`${n.computeShedMW.toFixed(1)} MW`} />
         <Stat label="Coolant supply / return" value={`${n.supplyC.toFixed(0)} / ${n.returnC.toFixed(1)} °C`} />

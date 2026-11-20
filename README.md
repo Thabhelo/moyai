@@ -1,6 +1,6 @@
 # Moyai
 
-Verified grid relief for host communities. Team Tornadoes, BESmart Innovation Challenge 2026 (Charlotte, NC).
+Verified grid relief for host communities. Team Tornadoes, BESmart Innovation Challenge 2026 (Charlotte, NC). The demo facility is a simulated host campus in Shelby County, TN (Memphis, ZIP 38109).
 
 Moyai checks, in real time, that an AI data center actually cuts its power when the grid asks. It records every reading in a tamper-evident log and issues a signed certificate the utility and county can check. Residents see the same facts in plain English and Spanish.
 
@@ -34,7 +34,7 @@ pnpm test         # core logic tests
 | Method | Route | Does |
 |---|---|---|
 | GET | `/api/state` | Advances the sim to now; returns the latest reading, last 3 h, events, the ledger tail and the first broken ledger entry (`brokenAt`) |
-| POST | `/api/event` | Starts a curtailment event `{ targetPct: 0.25, durationMin: 120 }` |
+| POST | `/api/event` | Starts a curtailment event `{ targetPct: 0.3, durationMin: 120 }` |
 | GET | `/api/certificate/:id` | Signed certificate for a finished event |
 | POST | `/api/tamper` | Demo: edits an old reading so the log shows it as broken |
 | POST | `/api/reset` | Restarts the simulation |
@@ -42,14 +42,14 @@ pnpm test         # core logic tests
 ## Code
 
 - `lib/sim.ts`: the simulated campus. Battery covers the cut first, then paused AI training covers the rest.
-- `lib/baseline.ts`: baseline and curtailment verification. Passes if load reaches the committed level within the 5-minute dispatch window and stays there. Also estimates the water saved at power plants (Duke grid, 2.26 L/kWh).
+- `lib/baseline.ts`: baseline and curtailment verification. Passes if load reaches the committed level (70% of baseline) within the 10-minute dispatch window and stays there. Also estimates the water saved at power plants (US average, 4.52 L/kWh, until a TVA factor is researched).
 - `lib/ledger.ts`: SHA-256 hash chain plus Ed25519 signing.
 - `components/useMoyai.ts`: every view polls `/api/state` each second, so a dispatch on one screen shows on all of them.
 
 ## Demo script (60 s)
 
 1. Open `/utility` and `/public` side by side (the second on a phone if possible).
-2. Click **Send grid alert**. The load drops 25% within 5 simulated minutes, and the battery and paused compute share the cut.
+2. Click **Send grid alert**. The load drops to 70% of baseline within 10 simulated minutes, and the battery and paused compute share the cut.
 3. Residents' view switches to "using less power to help the grid."
 4. When the event ends, `/county` shows "Verified" and the signed certificate.
 5. Click **Demo: tamper with a reading**. The audit log flips to "Broken at #N."

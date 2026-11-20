@@ -10,7 +10,7 @@ export default function Utility() {
   const live = activeEvent(s);
   const done = lastFinished(s);
   const dispatch = async () => {
-    const r = await fetch("/api/event", { method: "POST", body: JSON.stringify({ targetPct: 0.25, durationMin: 120 }) });
+    const r = await fetch("/api/event", { method: "POST", body: JSON.stringify({ targetPct: 0.3, durationMin: 120 }) });
     setError(r.ok ? "" : (await r.json()).error);
   };
   return (
@@ -21,7 +21,7 @@ export default function Utility() {
         disabled={!!live}
         className="self-start rounded-md bg-orange-600 px-4 py-2 font-medium text-white disabled:opacity-50"
       >
-        {live ? "Grid alert in progress" : "Send grid alert: cut 25% for 2 hours"}
+        {live ? "Grid alert in progress" : "Send grid alert: drop to 70% for 2 hours"}
       </button>
       {error && <p className="text-red-600">{error}</p>}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">

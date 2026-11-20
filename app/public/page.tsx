@@ -28,7 +28,7 @@ export default function Public() {
   const t = text[lang];
   const done = lastFinished(s)?.verification;
   return (
-    <main className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-10 text-lg">
+    <main lang={lang} className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-10 text-lg">
       <button onClick={() => setLang(lang === "en" ? "es" : "en")} className="self-end text-sm underline">
         {t.lang}
       </button>
