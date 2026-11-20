@@ -47,7 +47,7 @@ export function Footer() {
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <div className="font-head text-2xl font-semibold text-ink">Moyai <span className="font-normal text-ink3">舫い</span></div>
-            <p className="mt-1 max-w-sm">A mooring rope that ties boats together, so they weather storms as one.</p>
+            <p className="mt-1 max-w-sm">Moyai is Japanese for a mooring rope that ties boats together in a storm.</p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             {LINKS.map((l) => <Link key={l.id} href={l.href} className="hover:text-ink">{l.name}</Link>)}

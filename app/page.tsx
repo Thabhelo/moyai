@@ -11,7 +11,7 @@ const stroke = { fill: "none", stroke: "var(--ink)", strokeWidth: 3, strokeLinec
 // One small moving picture per audience: neighbors, the county's ledger, the load dropping.
 const DOORS = [
   {
-    href: "/community", who: "Community", line: "Is it following the rules?",
+    href: "/community", who: "Community", line: "Is the data center following the rules?",
     art: [0, 1, 2].map((i) => <circle key={i} className="bob" style={{ animationDelay: `${i * 0.25}s` }} cx={14 + i * 22} cy={30} r={7} fill={i === 1 ? "var(--hot)" : "var(--ink)"} />),
   },
   {
@@ -19,7 +19,7 @@ const DOORS = [
     art: [0, 1, 2].map((i) => <rect key={i} className="bar" style={{ animationDelay: `${i * 0.3}s` }} x={8 + i * 22} y={[18, 8, 26][i]} width={10} height={[30, 40, 22][i]} rx={5} fill={i === 1 ? "var(--hot)" : "var(--ink)"} />),
   },
   {
-    href: "/operator", who: "Data center", line: "Cut power when the grid asks. Prove it.",
+    href: "/operator", who: "Data center", line: "Cut power on a grid signal and get it verified",
     art: [<path key="l" className="dash" pathLength={1} d="M4,16 H30 C36,16 34,40 40,40 H68" {...stroke} />, <circle key="d" cx={30} cy={16} r={5} fill="var(--hot)" />],
   },
 ];
@@ -43,14 +43,14 @@ export default function Landing() {
             </h1>
             <Rope className="fade my-[1vh] h-[clamp(48px,7vw,84px)] w-full" />
             <p className="fade px-6 text-2xl text-ink2 sm:text-3xl" style={{ animationDelay: "0.5s" }}>
-              Data center. Grid. Neighbors. <span className="text-ink">Tied together.</span>
+              Proof that a data center cuts power <span className="text-ink">when the grid asks.</span>
             </p>
           </div>
         </section>
 
         <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
           <Reveal>
-            <h2 className="text-5xl font-bold sm:text-7xl">The grid asks.<br /><span className="text-ink3">The load drops.</span></h2>
+            <h2 className="text-5xl font-bold sm:text-7xl">The load drops<br /><span className="text-ink3">when the grid asks.</span></h2>
           </Reveal>
           <Reveal className="plush grow-in mt-12 rounded-[40px] bg-card p-8 sm:p-14">
             <svg viewBox="0 0 600 230" role="img" aria-label="Power draw falls to 70 percent four minutes after the grid asks" className="w-full">
@@ -60,7 +60,7 @@ export default function Landing() {
                 <circle className="pulse" cx="330" cy="64" r="6" fill="var(--hot)" />
                 <circle cx="330" cy="64" r="6" fill="var(--hot)" />
                 <text x="330" y="38" textAnchor="middle" fill="var(--ink2)" fontSize="15">Grid signal</text>
-                <text x="492" y="206" textAnchor="middle" fill="var(--ink)" fontSize="17" fontWeight="700">30% less power, in 4 minutes</text>
+                <text x="470" y="206" textAnchor="middle" fill="var(--ink)" fontSize="17" fontWeight="700">30% less power 4 minutes after the signal</text>
               </g>
             </svg>
           </Reveal>
@@ -68,8 +68,8 @@ export default function Landing() {
 
         <section className="mx-auto max-w-5xl px-6 py-32 sm:px-10">
           <Reveal>
-            <p className="flex items-center gap-2 text-ink2"><span className="relative flex h-2.5 w-2.5"><span className="pulse absolute inset-0 rounded-full bg-hot" /><span className="relative h-2.5 w-2.5 rounded-full bg-hot" /></span>Open to everyone, live</p>
-            <h2 className="mt-2 text-5xl font-bold sm:text-7xl">The same proof for all.</h2>
+            <p className="flex items-center gap-2 text-ink2"><span className="relative flex h-2.5 w-2.5"><span className="pulse absolute inset-0 rounded-full bg-hot" /><span className="relative h-2.5 w-2.5 rounded-full bg-hot" /></span>Public and live</p>
+            <h2 className="mt-2 text-5xl font-bold sm:text-7xl">Everyone sees the same record.</h2>
           </Reveal>
           <div className="relative mt-14">
             <Shader className="absolute -inset-x-[20vw] -inset-y-24 -z-10 h-[calc(100%+12rem)] w-[calc(100%+40vw)]" />

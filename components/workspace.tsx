@@ -279,7 +279,7 @@ function Cooling({ s, canApply }: { s: MoyaiState; canApply: boolean }) {
           })}
         </ul>
       </Card>
-      <p className="text-sm text-ink2">Honest limit: cooling savings alone cannot promise unchanged bills. A 100 MW campus that uses 10 MW for cooling and cuts it by 20% still draws 98 MW. Bills also depend on utility rates and on who pays for grid upgrades.</p>
+      <p className="text-sm text-ink2">Cooling savings alone cannot promise unchanged bills. A 100 MW campus that uses 10 MW for cooling and cuts it by 20% still draws 98 MW. Bills also depend on utility rates and on who pays for grid upgrades.</p>
     </>
   );
 }
@@ -523,7 +523,7 @@ const COPY = {
     yesWhy: "Power, water and noise are all inside their permits today.", noWhy: "A past reading in its record book was changed. The county has been told.",
     today: (h: string, p: string) => `Today it used as much electricity as ${h} homes and as much water as ${p} people.`,
     bill: "Your power bill", billBody: "$0 of the grid upgrade costs were added to household rates. This protection covers everyone.",
-    water: "Water saved this month", waterBody: (g: string) => `${g} gallons, by cooling the buildings in smarter ways.`,
+    water: "Water saved this month", waterBody: (g: string) => `${g} gallons, from changes to how the buildings are cooled.`,
     battery: "Community battery", batteryBody: "It last helped the grid on Nov 12 and has earned the community $412,000 this year.",
     jobs: "Local jobs", jobsBody: "184 neighbors hired so far. Paid training has 60 open seats. Ask at your community college.",
     report: "Report a problem", note: "Add a note (optional)", send: "Send report", sent: "Thank you. The county can see your report now.",
@@ -534,7 +534,7 @@ const COPY = {
     yesWhy: "Hoy la electricidad, el agua y el ruido están dentro de sus permisos.", noWhy: "Alguien cambió una lectura en su libro de registros. El condado ya fue avisado.",
     today: (h: string, p: string) => `Hoy usó tanta electricidad como ${h} hogares y tanta agua como ${p} personas.`,
     bill: "Su factura de luz", billBody: "$0 de los costos de mejora de la red se sumaron a las tarifas de los hogares. Esta protección cubre a todos.",
-    water: "Agua ahorrada este mes", waterBody: (g: string) => `${g} galones, al enfriar los edificios de forma más inteligente.`,
+    water: "Agua ahorrada este mes", waterBody: (g: string) => `${g} galones, gracias a cambios en la forma de enfriar los edificios.`,
     battery: "Batería comunitaria", batteryBody: "Ayudó a la red por última vez el 12 de noviembre y ha ganado $412,000 para la comunidad este año.",
     jobs: "Empleos locales", jobsBody: "184 vecinos contratados hasta ahora. Hay 60 cupos de capacitación pagada. Pregunte en su colegio comunitario.",
     report: "Reportar un problema", note: "Agregue una nota (opcional)", send: "Enviar reporte", sent: "Gracias. El condado ya puede ver su reporte.",
