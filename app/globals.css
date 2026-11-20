@@ -6,8 +6,8 @@
   --card: #ffffff;
   --fill: #f0f0ee;
   --ink: #141414;
-  --ink2: #6e6e72;
-  --ink3: #a3a3a6;
+  --ink2: #55555a;
+  --ink3: #8e8e93;
   --line: #e4e4e1;
   --accent: #161616;
   --on-accent: #ffffff;
@@ -57,12 +57,13 @@
   --color-accent-soft: var(--accent-soft);
   --color-on-accent: var(--on-accent);
   --color-hot: var(--hot);
-  --font-sans: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-head: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-round), ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  --font-head: var(--font-round), ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
-body { background: var(--canvas); color: var(--ink); font-size: 16px; line-height: 1.5; }
+html { font-size: 112.5%; scroll-behavior: smooth; }
+body { background: var(--canvas); color: var(--ink); font-size: 1rem; line-height: 1.5; }
 h1, h2 { font-family: var(--font-head); letter-spacing: -0.022em; }
 .num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 ol.num { font-family: var(--font-mono); }
@@ -80,18 +81,49 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 /* Motion: one entrance per screen, transform and opacity only. */
 .enter { animation: enter 0.5s var(--ease) both; }
 @keyframes enter { from { opacity: 0; transform: translateY(10px); } }
-.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
-.reveal.in { opacity: 1; transform: none; }
+.reveal { opacity: 0; transform: translateY(36px) scale(0.98); filter: blur(10px); transition: opacity 1s var(--ease), transform 1s var(--ease), filter 1s var(--ease); }
+.reveal.in { opacity: 1; transform: none; filter: none; }
+/* A line that draws itself once its section is on screen. */
+.draw { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 2.4s var(--ease) 0.3s; }
+.in .draw { stroke-dashoffset: 0; }
+.after-draw { opacity: 0; transition: opacity 0.8s ease-out 2.2s; }
+.in .after-draw { opacity: 1; }
+.pulse { animation: pulse 2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse { from { transform: scale(1); opacity: 0.5; } to { transform: scale(3.2); opacity: 0; } }
+/* The wordmark eases away as the page scrolls, where the browser can tie motion to scroll. */
+@supports (animation-timeline: scroll()) {
+  .hero-out { animation: hero-out linear both; animation-timeline: scroll(root); animation-range: 0 85vh; }
+  @keyframes hero-out { to { transform: translateY(-8vh) scale(0.86); opacity: 0; filter: blur(12px); } }
+  .grow-in { animation: grow-in linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
+  @keyframes grow-in { from { transform: scale(0.9); opacity: 0.2; } }
+}
 .mask { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: 0.08em; }
 .rise { display: inline-block; animation: rise 0.9s var(--ease) both; }
 @keyframes rise { from { transform: translateY(105%); } }
 .fade { animation: fade 1.2s ease-out both; }
 @keyframes fade { from { opacity: 0; } }
-.door .arrow { transition: transform 0.3s var(--ease); }
-.door:hover .arrow { transform: translateX(6px); }
+/* Role picker: soft cards that lift on a spring, with a round arrow button that fills on hover. */
+.door { transition: transform 0.5s var(--spring), box-shadow 0.3s ease-out; }
+.door:hover, .door:focus-visible { transform: translateY(-8px); box-shadow: 0 1px 3px rgba(20, 20, 20, 0.12), 0 18px 40px rgba(20, 20, 20, 0.08); }
+.door:active { transform: scale(0.97); }
+.door .go { background: var(--fill); transition: background-color 0.2s, color 0.2s, transform 0.5s var(--spring); }
+.door:hover .go { background: var(--accent); color: var(--on-accent); transform: translateX(4px); }
+.bob { animation: bob 2.4s ease-in-out infinite; transform-box: fill-box; }
+@keyframes bob { 50% { transform: translateY(-5px); } }
+.bar { animation: bar 2.8s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom; }
+@keyframes bar { 50% { transform: scaleY(0.55); } }
+.dash { stroke-dasharray: 1; animation: dash 3.2s var(--ease) infinite; }
+@keyframes dash { from { stroke-dashoffset: 1; } 55%, to { stroke-dashoffset: 0; } }
+.seg { background: var(--fill); }
+.seg a[aria-current="page"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(20, 20, 20, 0.16), 0 2px 8px rgba(20, 20, 20, 0.06); }
 .glass { background: color-mix(in srgb, var(--canvas) 72%, transparent); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
 @media (prefers-reduced-motion: reduce) {
-  .enter, .rise, .fade { animation: none; }
-  .reveal { opacity: 1; transform: none; transition: none; }
+  .enter, .rise, .fade, .pulse, .hero-out, .grow-in, .bob, .bar { animation: none; }
+  .dash { animation: none; stroke-dashoffset: 0; }
+  .door, .door:hover { transform: none; }
+  .reveal { opacity: 1; transform: none; filter: none; transition: none; }
+  .draw { stroke-dashoffset: 0; transition: none; }
+  .after-draw { opacity: 1; transition: none; }
+  html { scroll-behavior: auto; }
   button:active { transform: none !important; }
 }
