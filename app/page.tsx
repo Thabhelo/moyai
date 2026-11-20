@@ -98,7 +98,6 @@ export default function Landing() {
           ))}
         </section>
 
-        <Rope className="h-16 w-full opacity-60" />
       </main>
       <Footer />
     </>

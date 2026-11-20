@@ -40,23 +40,43 @@ export function Nav({ current }: { current?: string }) {
   );
 }
 
+const FOOT = [
+  { href: "/community", name: "Community", does: "Plain answers for residents, in English or Spanish" },
+  { href: "/county", name: "County", does: "Permits, costs and promises for one county" },
+  { href: "/operator", name: "Data center", does: "Send grid signals and log cooling changes" },
+];
+
 export function Footer() {
   return (
-    <footer className="border-t border-line">
-      <div className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-16 text-sm text-ink2 sm:px-10">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <div className="font-head text-2xl font-semibold text-ink">Moyai <span className="font-normal text-ink3">舫い</span></div>
-            <p className="mt-1 max-w-sm">Moyai is Japanese for a mooring rope that ties boats together in a storm.</p>
+    <footer className="px-3 pb-3 sm:px-5 sm:pb-5">
+      <div className="onink overflow-hidden rounded-[40px]">
+        <div className="mx-auto max-w-5xl px-8 pt-16 sm:px-14 sm:pt-24">
+          <div className="grid gap-14 md:grid-cols-[1.1fr_2fr]">
+            <Reveal>
+              <div className="text-6xl text-ink3">舫い</div>
+              <p className="mt-5 max-w-xs text-xl leading-snug">Moyai is Japanese for a mooring rope that ties boats together in a storm.</p>
+            </Reveal>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {FOOT.map((l, i) => (
+                <Reveal key={l.href} delay={i * 100}>
+                  <Link href={l.href} className="door flex h-full flex-col justify-between gap-10 rounded-[28px] bg-card p-6">
+                    <span className="go flex h-11 w-11 items-center justify-center rounded-full text-lg" aria-hidden>→</span>
+                    <span>
+                      <span className="block font-head text-2xl font-semibold">{l.name}</span>
+                      <span className="mt-1 block text-ink2">{l.does}</span>
+                    </span>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
-            {LINKS.map((l) => <Link key={l.id} href={l.href} className="hover:text-ink">{l.name}</Link>)}
+          <Rope className="mt-16 h-14 w-full" />
+          <div className="flex flex-wrap justify-between gap-3 py-8 text-sm text-ink2">
+            <span>Team Tornadoes · BESmart Innovation Challenge 2026</span>
+            <span>Campus readings are simulated. Census figures are real.</span>
           </div>
         </div>
-        <div className="flex flex-wrap justify-between gap-2 border-t border-line pt-4 text-ink3">
-          <span>Team Tornadoes · BESmart Innovation Challenge 2026</span>
-          <span>Campus readings are simulated. Census figures are real.</span>
-        </div>
+        <div aria-hidden className="wordmark grow-in select-none text-center font-head text-[clamp(7rem,31vw,27rem)] font-bold leading-[0.72] tracking-[-0.05em]">Moyai</div>
       </div>
     </footer>
   );

@@ -451,6 +451,9 @@ input[type="range"] { accent-color: var(--accent); width: 100%; }
 @keyframes fade { from { opacity: 0; } }
 /* Role picker: soft cards that lift on a spring, with a round arrow button that fills on hover. */
 .door { transition: transform 0.5s var(--spring), box-shadow 0.3s ease-out; }
+/* The footer panel is always dark, so it redefines the colours its contents read. */
+.onink { --ink: #f5f5f4; --ink2: #a3a3a6; --ink3: #77777b; --line: #2a2a2a; --card: #1f1f1f; --fill: #2c2c2c; --accent: #f5f5f4; --on-accent: #141414; --shadow: none; background: #141414; color: var(--ink); }
+.wordmark { margin-bottom: -0.12em; background: linear-gradient(180deg, #f5f5f4 10%, rgba(245, 245, 244, 0.06) 92%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .doors { perspective: 1200px; }
 .door:hover, .door:focus-visible { transform: translateY(-8px) rotateX(calc((var(--py, 0.5) - 0.5) * -10deg)) rotateY(calc((var(--px, 0.5) - 0.5) * 10deg)); box-shadow: 0 1px 3px rgba(20, 20, 20, 0.12), 0 18px 40px rgba(20, 20, 20, 0.08); }
 .door:active { transform: scale(0.97); }
