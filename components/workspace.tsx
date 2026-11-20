@@ -476,6 +476,11 @@ function Jobs({ county }: { county: County }) {
 
 function Alerts({ s }: { s: MoyaiState }) {
   const kind = (id: string) => REPORT_KINDS.find((k) => k.id === id)?.en ?? id;
+  const [demoError, setDemoError] = useState("");
+  const demo = async (path: "tamper" | "reset") => {
+    const r = await post(path);
+    setDemoError(r.ok ? "" : ((await r.json().catch(() => null))?.error ?? "That did not work."));
+  };
   return (
     <>
       <Card title="Needs attention">
@@ -495,10 +500,11 @@ function Alerts({ s }: { s: MoyaiState }) {
             <span className="ml-2 text-sm text-ink2"><span className="num">{s.ledgerLength}</span> entries. Each entry carries a fingerprint of the one before it, so an edited reading shows up at once.</span>
           </div>
           <div className="flex gap-2">
-            <Button quiet onClick={() => post("tamper")}>Demo: edit an old reading</Button>
-            <Button quiet onClick={() => post("reset")}>Reset demo</Button>
+            <Button quiet onClick={() => demo("tamper")}>Demo: edit an old reading</Button>
+            <Button quiet onClick={() => demo("reset")}>Reset demo</Button>
           </div>
         </div>
+        {demoError && <p role="status" className="mt-2 text-sm text-ink2">{demoError}</p>}
         <ol className="num mt-3 text-xs text-ink2">
           {s.ledger.toReversed().slice(0, 5).map((e) => (
             <li key={e.seq} className="truncate border-t border-line py-1">#{e.seq} · {e.type.replace("_", " ")} · {e.hash.slice(0, 20)}</li>

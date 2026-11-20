@@ -36,5 +36,16 @@ export function useMoyai(county: string, intervalMs = 1000) {
   return state;
 }
 
-export const post = (path: string, body: unknown = {}) => fetch(`/api/${path}`, { method: "POST", body: JSON.stringify(body) });
+// The presenter opens the site once with ?demo=<key>; after that, demo-only buttons send the key.
+const demoKey = () => {
+  try {
+    const k = new URLSearchParams(location.search).get("demo");
+    if (k) localStorage.setItem("moyai-demo-key", k);
+    return k ?? localStorage.getItem("moyai-demo-key") ?? "";
+  } catch {
+    return "";
+  }
+};
+export const post = (path: string, body: unknown = {}) =>
+  fetch(`/api/${path}`, { method: "POST", body: JSON.stringify(body), headers: { "x-demo-key": demoKey() } });
 export const activeEvent = (s: MoyaiState) => s.events.find((e) => !e.verification);
